@@ -1,0 +1,6 @@
+command: echo
+args:
+  - "Hello, $name! Welcome to $platform."
+variables:
+  platform: "Linea CLI"
+

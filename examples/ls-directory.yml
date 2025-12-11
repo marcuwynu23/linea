@@ -1,0 +1,9 @@
+# List directory contents
+command: ls
+args:
+  - -l
+  - -a
+  - "{directory}"
+variables:
+  directory: "."
+

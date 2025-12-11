@@ -1,0 +1,7 @@
+# Docker images command to list images
+command: docker
+subcommand: images
+args:
+  - --format
+  - "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+

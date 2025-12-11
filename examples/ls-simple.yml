@@ -1,0 +1,5 @@
+# Simple ls command
+command: ls
+args:
+  - -l
+

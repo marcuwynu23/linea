@@ -1,0 +1,6 @@
+# Simple echo command without subcommand
+command: echo
+args:
+  - "Hello, Linea!"
+  - "This is a simple command without a subcommand"
+

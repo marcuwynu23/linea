@@ -1,0 +1,15 @@
+# Docker run command with variables
+command: docker
+subcommand: run
+args:
+  - --rm
+  - -it
+  - --name
+  - "{container_name}"
+  - "{image}"
+  - "{command}"
+variables:
+  container_name: "test-container"
+  image: "alpine:latest"
+  command: "echo Hello from Docker"
+
