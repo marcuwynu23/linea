@@ -1,0 +1,6 @@
+# Docker ps command to list running containers
+command: docker
+subcommand: ps
+args:
+  - -a
+

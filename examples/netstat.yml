@@ -1,0 +1,4 @@
+command: netstat
+args:
+  - "-anop"
+

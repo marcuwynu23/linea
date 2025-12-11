@@ -1,0 +1,17 @@
+command: echo
+args:
+  - "First command: {message}"
+variables:
+  message: "Hello from first command"
+---
+command: echo
+args:
+  - "Second command: {message}"
+variables:
+  message: "Hello from second command"
+---
+command: echo
+args:
+  - "Third command: {message}"
+variables:
+  message: "Hello from third command"

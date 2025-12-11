@@ -1,0 +1,36 @@
+# Linea Workflow Configuration
+# This file defines commands that can be executed using: linea run <this-file>
+
+# Main command to execute
+command: echo
+
+# Optional subcommand (for commands like: docker ps, git status, etc.)
+# subcommand: ps
+
+# Arguments to pass to the command
+args:
+  - "Hello, Linea!"
+  - "This is a template workflow file"
+
+# Variables for substitution
+# Use {variable} or $variable syntax in args
+variables:
+  # message: "Custom message"
+  # name: "Your Name"
+
+# Example usage:
+#   linea run <this-file>
+#   linea run <this-file> --args message="Custom"
+#   linea test <this-file>
+#   linea help <this-file>
+
+# Multiple Commands:
+# You can define multiple commands in one file by separating them with ---
+# 
+# command: echo
+# args:
+#   - "First command"
+# ---
+# command: echo
+# args:
+#   - "Second command"

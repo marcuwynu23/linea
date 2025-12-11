@@ -1,0 +1,9 @@
+# Echo command with variable substitution
+command: echo
+args:
+  - "Message: {message}"
+  - "User: {user}"
+variables:
+  message: "Welcome to Linea CLI"
+  user: "Developer"
+
