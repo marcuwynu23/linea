@@ -9,7 +9,7 @@ import (
 )
 
 // ExecuteLineashScript executes a .lnsh script file with bash-like features
-func ExecuteLineashScript(scriptPath string) error {
+func ExecuteLineashScript(scriptPath string, scriptArgs []string) error {
 	// Check if file exists
 	if _, err := os.Stat(scriptPath); os.IsNotExist(err) {
 		return fmt.Errorf("script file not found: %s", scriptPath)
@@ -20,6 +20,9 @@ func ExecuteLineashScript(scriptPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize lineash context: %w", err)
 	}
+
+	// Set positional parameters
+	ctx.Args = scriptArgs
 
 	// Read script content
 	scriptContent, err := os.ReadFile(scriptPath)
@@ -38,20 +41,22 @@ func LineashMain(args []string) {
 		fmt.Fprintf(os.Stderr, "  ❌ Error: no script file specified\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  USAGE:\n")
-		fmt.Fprintf(os.Stderr, "    lineash <script.lnsh>\n")
+		fmt.Fprintf(os.Stderr, "    lineash <script.lnsh> [args...]\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  EXAMPLES:\n")
 		fmt.Fprintf(os.Stderr, "    lineash scripts/script.lnsh\n")
-		fmt.Fprintf(os.Stderr, "    lineash .linea/scripts/deploy.lnsh\n")
+		fmt.Fprintf(os.Stderr, "    lineash .linea/scripts/deploy.lnsh arg1 arg2\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  NOTE:\n")
 		fmt.Fprintf(os.Stderr, "    Scripts must be in a directory with .linea/workflows/ available\n")
 		fmt.Fprintf(os.Stderr, "    Workflows in .linea/workflows/ can be called as commands\n")
+		fmt.Fprintf(os.Stderr, "    Positional parameters are available as $1, $2, etc.\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		os.Exit(1)
 	}
 
 	scriptPath := args[0]
+	scriptArgs := args[1:] // Remaining args are positional parameters
 
 	// Resolve absolute path
 	if !filepath.IsAbs(scriptPath) {
@@ -61,7 +66,7 @@ func LineashMain(args []string) {
 		}
 	}
 
-	if err := ExecuteLineashScript(scriptPath); err != nil {
+	if err := ExecuteLineashScript(scriptPath, scriptArgs); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

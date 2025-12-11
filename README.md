@@ -126,36 +126,51 @@ my-app/
 Execute bash-like scripts that can run Linea workflows as first-class commands:
 
 ```bash
-lineash scripts/deploy.lnsh
+lineash scripts/deploy.lnsh [args...]
 ```
 
 **Features:**
+- **Friendly Syntax**: Simplified conditionals and loops with `end` keyword
 - **Variables**: `VAR="value"` and `$VAR` substitution
-- **Conditionals**: `if [ condition ]; then ... fi`
-- **Loops**: `for VAR in values; do ... done`
+- **Positional Parameters**: `$1`, `$2`, etc. from command-line arguments
+- **Arithmetic Expressions**: `$((expression))` for calculations
+- **Conditionals**: `if condition ... else ... end` with operators `==`, `!=`, `<`, `>`, `<=`, `>=`
+- **Loops**: `for VAR in list ... end` and `while condition ... end`
 - **Workflow Commands**: Workflows in `.linea/workflows/` become executable commands
 - **System Commands**: Unknown commands forwarded to system shell
+- **No Shebang Required**: Scripts can run without `#!/bin/lineash` at the top
 
-**Example Script:**
+**Example Script (Friendly Syntax):**
 ```bash
-#!/bin/lineash
+# No shebang required!
 VM_NAME="my-vm"
 VM_OS="alpine"
 
 echo "Starting deployment..."
 
-if [ "$VM_OS" = "alpine" ]
-then
+# Friendly conditional
+if $VM_OS == "alpine"
     echo "Using Alpine Linux"
-    create-vm -s/--set name="$VM_NAME"
-fi
+    create-vm -s name=$VM_NAME
+else
+    echo "Using different OS"
+end
 
+# Friendly for loop
 for env in dev staging prod
-do
     echo "Deploying to $env..."
-    deploy -s/--set environment="$env"
-done
+    deploy -s environment=$env
+end
+
+# While loop with arithmetic
+counter=1
+while $counter <= 3
+    echo "Iteration $counter"
+    counter=$((counter + 1))
+end
 ```
+
+**Note:** Traditional bash syntax (`if/then/else/fi`, `for/do/done`) is still supported for backward compatibility.
 
 ## Example YAML Files
 
