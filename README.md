@@ -15,7 +15,9 @@
 
 </div>
 
-Linea is an open-source CLI tool that allows developers and sysadmins to define commands, subcommands, arguments, and execution parameters in **YAML files**. It reads these files and executes the commands in a **cross-platform** way, handling OS-specific quirks like path separators, help flags, and other environment differences.
+Linea is a cross-platform CLI tool that organizes commands into workflows using YAML. It makes defining and managing complex command-line tasks simple and consistent across different environments.
+
+Beyond organization, Linea can execute these workflows directly, enabling developers and sysadmins to streamline their operations and run tasks reliably across Windows, Linux, and macOS.
 
 
 ## Why Linea?
