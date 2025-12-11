@@ -541,5 +541,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - YAML parsing powered by [gopkg.in/yaml.v3](https://github.com/go-yaml/yaml)
 
 ---
-
-**Made with ❤️ by the Linea community**
