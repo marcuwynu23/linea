@@ -60,6 +60,8 @@ Linea provides a **declarative, cross-platform approach** to command execution:
 - **Cross-Platform Support**: Automatically detects OS and converts paths to proper separators
 - **Variable Substitution**: Use `{variable}` or `$variable` placeholders with validation
 - **Command-Line Overrides**: Pass variables at runtime without modifying files
+- **Linea App**: Create structured app directories with workflows and scripts
+- **Lineash Scripts**: Bash-like script interpreter that executes Linea workflows as commands
 - **Dry-Run Mode**: Test commands without executing them using the `test` subcommand
 - **Help Command**: Display information about commands defined in YAML files
 - **Variable Validation**: Ensures all required variables are defined before execution
@@ -93,6 +95,67 @@ linea <subcommand> <yaml-file>
 - `test` - Dry-run the command (print without executing)
 - `help` - Display information about the command
 - `init` - Initialize a new workflow YAML file with template and documentation
+- `app create <name>` - Create a Linea App structure with workflows and scripts
+
+## Advanced Features
+
+### Linea App
+
+Create structured application directories with workflows and scripts:
+
+```bash
+linea app create my-app
+```
+
+This creates:
+```
+my-app/
+├─ .linea/workflows/    # Workflow YAML files (executable as commands)
+├─ scripts/             # Lineash scripts (.lnsh files)
+└─ README.md
+```
+
+**Benefits:**
+- Organize workflows in a structured directory
+- Execute workflows as commands from scripts
+- Share app configurations with teams
+- Version control entire app structures
+
+### Lineash Scripts
+
+Execute bash-like scripts that can run Linea workflows as first-class commands:
+
+```bash
+lineash scripts/deploy.lnsh
+```
+
+**Features:**
+- **Variables**: `VAR="value"` and `$VAR` substitution
+- **Conditionals**: `if [ condition ]; then ... fi`
+- **Loops**: `for VAR in values; do ... done`
+- **Workflow Commands**: Workflows in `.linea/workflows/` become executable commands
+- **System Commands**: Unknown commands forwarded to system shell
+
+**Example Script:**
+```bash
+#!/bin/lineash
+VM_NAME="my-vm"
+VM_OS="alpine"
+
+echo "Starting deployment..."
+
+if [ "$VM_OS" = "alpine" ]
+then
+    echo "Using Alpine Linux"
+    create-vm -s/--set name="$VM_NAME"
+fi
+
+for env in dev staging prod
+do
+    echo "Deploying to $env..."
+    deploy -s/--set environment="$env"
+done
+```
 
 ## Example YAML Files
 
@@ -123,9 +186,9 @@ variables:
   user: "Developer"
 ```
 
-### Command with Command-Line Variables (--args)
+### Command with Command-Line Variables (-s/--set)
 
-You can override or provide variables at runtime using the `--args` flag and reference them with `$variable` syntax:
+You can override or provide variables at runtime using the `-s/--set` flag. **Note:** Only `$variable` syntax can be overridden; `{variable}` syntax always uses YAML defaults.
 
 ```yaml
 # examples/greet.yml
@@ -138,7 +201,7 @@ variables:
 
 Run with command-line variables:
 ```bash
-linea run examples/greet.yml --args name="John"
+linea run examples/greet.yml -s/--set name="John"
 ```
 
 Output:
@@ -148,13 +211,14 @@ Hello, John! Welcome to Linea CLI.
 
 You can also override YAML variables:
 ```bash
-linea run examples/greet.yml --args name="John" --args platform="Commandline Workflow"
+linea run examples/greet.yml -s/--set name="John" -s/--set platform="Commandline Workflow"
 ```
 
 Output:
 ```
 Hello, John! Welcome to Commandline Workflow.
 ```
+
 
 ### Docker Command
 
@@ -194,6 +258,10 @@ variables:
   <var1>: <value1>
   <var2>: <value2>
 ```
+
+**Variable Syntax Notes:**
+- Use `{variable}` for protected defaults that cannot be overridden
+- Use `$variable` for values that can be overridden via `-s/--set`
 
 ### Multiple Commands
 
@@ -438,7 +506,7 @@ variables:
 **Benefits:**
 - ✅ Works on Windows, Linux, macOS without modification
 - ✅ Easy to review in pull requests
-- ✅ Variables can be overridden: `linea run build.yml --args tag="v1.0.0"`
+- ✅ Variables can be overridden: `linea run build.yml -s/--set tag="v1.0.0"`
 - ✅ Self-documenting structure
 - ✅ Built-in validation prevents errors
 

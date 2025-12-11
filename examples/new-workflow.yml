@@ -20,7 +20,7 @@ variables:
 
 # Example usage:
 #   linea run <this-file>
-#   linea run <this-file> --args message="Custom"
+#   linea run <this-file> -s message="Custom"
 #   linea test <this-file>
 #   linea help <this-file>
 

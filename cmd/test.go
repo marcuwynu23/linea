@@ -51,16 +51,16 @@ func TestCommandMain(args []string) {
 		fmt.Fprintf(os.Stderr, "    linea test [options] <yaml-file>\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  OPTIONS:\n")
-		fmt.Fprintf(os.Stderr, "    --args <var>=<value>       Provide variable values for testing\n")
+		fmt.Fprintf(os.Stderr, "    -s, --set <var>=<value>     Set variable values for testing\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  EXAMPLES:\n")
 		fmt.Fprintf(os.Stderr, "    linea test config.yml\n")
-		fmt.Fprintf(os.Stderr, "    linea test config.yml --args variable=\"test\"\n")
+		fmt.Fprintf(os.Stderr, "    linea test config.yml -s variable=\"test\"\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		os.Exit(1)
 	}
 
-	// Parse --args flags
+	// Parse -s/--set flags
 	overrideVars, remainingArgs := ParseArgs(args)
 	
 	yamlFile := ""
@@ -79,7 +79,7 @@ func TestCommandMain(args []string) {
 		fmt.Fprintf(os.Stderr, "    linea test [options] <yaml-file>\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  OPTIONS:\n")
-		fmt.Fprintf(os.Stderr, "    --args <var>=<value>       Provide variable values for testing\n")
+		fmt.Fprintf(os.Stderr, "    -s, --set <var>=<value>     Set variable values for testing\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		os.Exit(1)
 	}

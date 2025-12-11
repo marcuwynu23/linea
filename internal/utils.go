@@ -158,7 +158,7 @@ func ValidateVariables(args []string, variables map[string]string) error {
 	}
 	
 	if len(missing) > 0 {
-		return fmt.Errorf("undefined variables: %s (use --args to provide values)", strings.Join(missing, ", "))
+		return fmt.Errorf("undefined variables: %s (use -s or --set to provide values)", strings.Join(missing, ", "))
 	}
 	
 	return nil
@@ -174,6 +174,69 @@ func SubstituteVariablesInArgs(args []string, variables map[string]string) []str
 			result[i] = NormalizePath(result[i])
 		}
 	}
+	return result
+}
+
+// SubstituteVariablesInArgsWithSeparateMaps applies variable substitution with separate maps
+// {name} uses yamlVars only, $name uses dollarVars
+func SubstituteVariablesInArgsWithSeparateMaps(args []string, yamlVars map[string]string, dollarVars map[string]string) []string {
+	result := make([]string, len(args))
+	for i, arg := range args {
+		result[i] = SubstituteVariablesWithSeparateMaps(arg, yamlVars, dollarVars)
+		// Only normalize paths, not flags or options
+		if IsPathLike(result[i]) {
+			result[i] = NormalizePath(result[i])
+		}
+	}
+	return result
+}
+
+// SubstituteVariablesWithSeparateMaps substitutes variables with separate maps
+// {name} uses yamlVars only (not overridable), $name uses dollarVars (overridable)
+func SubstituteVariablesWithSeparateMaps(s string, yamlVars map[string]string, dollarVars map[string]string) string {
+	result := s
+	
+	// First substitute {variable} using ONLY YAML variables (not overridable)
+	for key, value := range yamlVars {
+		placeholder := "{" + key + "}"
+		result = strings.ReplaceAll(result, placeholder, value)
+	}
+	
+	// Then substitute $variable using dollarVars (overridable, includes -s/--set)
+	for key, value := range dollarVars {
+		// Replace ${VAR} first (more specific)
+		placeholder2 := "${" + key + "}"
+		result = strings.ReplaceAll(result, placeholder2, value)
+		
+		// Replace $VAR (but not if it's part of a longer variable name)
+		placeholder1 := "$" + key
+		for {
+			idx := strings.Index(result, placeholder1)
+			if idx == -1 {
+				break
+			}
+			
+			// Check if it's a valid variable reference (not part of a longer variable)
+			afterIdx := idx + len(placeholder1)
+			if afterIdx >= len(result) {
+				// End of string, valid replacement
+				result = result[:idx] + value + result[afterIdx:]
+			} else {
+				nextChar := result[afterIdx]
+				// Valid if next char is not alphanumeric or underscore
+				if !((nextChar >= 'a' && nextChar <= 'z') || 
+					 (nextChar >= 'A' && nextChar <= 'Z') || 
+					 (nextChar >= '0' && nextChar <= '9') || 
+					 nextChar == '_') {
+					result = result[:idx] + value + result[afterIdx:]
+				} else {
+					// Skip this occurrence, it's part of a longer variable
+					result = result[:idx+1] + result[idx+1:]
+				}
+			}
+		}
+	}
+	
 	return result
 }
 

@@ -10,28 +10,47 @@ import (
 
 // BuildCommand constructs the full command with subcommand and arguments
 func BuildCommand(config *CommandConfig, overrideVars map[string]string) ([]string, error) {
-	// Merge YAML variables with override variables (override takes precedence)
-	mergedVars := make(map[string]string)
+	// Separate YAML variables from override variables
+	// {name} syntax uses ONLY YAML variables (not overridable)
+	// $name syntax uses override variables first, then YAML variables
+	
+	yamlVars := make(map[string]string)
 	if config.Variables != nil {
 		for k, v := range config.Variables {
-			mergedVars[k] = v
+			yamlVars[k] = v
 		}
 	}
+	
+	// For $variable syntax: override vars take precedence, then YAML vars
+	dollarVars := make(map[string]string)
+	// First add YAML vars
+	for k, v := range yamlVars {
+		dollarVars[k] = v
+	}
+	// Then override with -s/--set vars
 	if overrideVars != nil {
 		for k, v := range overrideVars {
-			mergedVars[k] = v
+			dollarVars[k] = v
 		}
 	}
 	
 	// Collect all strings that need validation (args + variable values)
 	stringsToValidate := make([]string, 0, len(config.Args))
 	stringsToValidate = append(stringsToValidate, config.Args...)
-	for _, v := range mergedVars {
+	// Validate against both YAML vars (for {name}) and dollar vars (for $name)
+	allVars := make(map[string]string)
+	for k, v := range yamlVars {
+		allVars[k] = v
+	}
+	for k, v := range dollarVars {
+		allVars[k] = v
+	}
+	for _, v := range allVars {
 		stringsToValidate = append(stringsToValidate, v)
 	}
 	
 	// Validate that all referenced variables are defined
-	if err := ValidateVariables(stringsToValidate, mergedVars); err != nil {
+	if err := ValidateVariables(stringsToValidate, allVars); err != nil {
 		return nil, err
 	}
 	
@@ -42,7 +61,8 @@ func BuildCommand(config *CommandConfig, overrideVars map[string]string) ([]stri
 	}
 	
 	// Apply variable substitution to arguments
-	args := SubstituteVariablesInArgs(config.Args, mergedVars)
+	// {name} uses yamlVars only, $name uses dollarVars
+	args := SubstituteVariablesInArgsWithSeparateMaps(config.Args, yamlVars, dollarVars)
 	cmd = append(cmd, args...)
 	
 	return cmd, nil

@@ -197,7 +197,7 @@ Follow the format:
 
 **Example:**
 ```go
-return fmt.Errorf("undefined variables: %s (use --args to provide values)", 
+return fmt.Errorf("undefined variables: %s (use -s or --set to provide values)", 
     strings.Join(missing, ", "))
 ```
 

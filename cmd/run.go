@@ -40,15 +40,16 @@ func RunCommand(yamlFile string, verbose bool, overrideVars map[string]string) e
 	return internal.ExecuteMultipleCommands(configs, overrideVars, false, verbose)
 }
 
-// ParseArgs parses --args flags from command line arguments
-// Format: --args variable="value" or --args variable=value
+// ParseArgs parses -s/--set flags from command line arguments
+// Format: -s variable="value" or --set variable=value
+// Also supports --args for backward compatibility
 func ParseArgs(args []string) (map[string]string, []string) {
 	vars := make(map[string]string)
 	remainingArgs := []string{}
 	
 	i := 0
 	for i < len(args) {
-		if args[i] == "--args" {
+		if args[i] == "-s" || args[i] == "--set" || args[i] == "--args" {
 			if i+1 < len(args) {
 				argPair := args[i+1]
 				// Parse variable=value format
@@ -84,17 +85,17 @@ func RunCommandMain(args []string) {
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  OPTIONS:\n")
 		fmt.Fprintf(os.Stderr, "    -v, --verbose              Show the command before executing\n")
-		fmt.Fprintf(os.Stderr, "    --args <var>=<value>       Provide variable values (can be used multiple times)\n")
+		fmt.Fprintf(os.Stderr, "    -s, --set <var>=<value>     Set variable values (can be used multiple times)\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  EXAMPLES:\n")
 		fmt.Fprintf(os.Stderr, "    linea run config.yml\n")
 		fmt.Fprintf(os.Stderr, "    linea run -v config.yml\n")
-		fmt.Fprintf(os.Stderr, "    linea run config.yml --args name=\"John\"\n")
+		fmt.Fprintf(os.Stderr, "    linea run config.yml -s name=\"John\"\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		os.Exit(1)
 	}
 
-	// Parse --args flags first
+	// Parse -s/--set flags first
 	overrideVars, remainingArgs := ParseArgs(args)
 	
 	verbose := false
@@ -118,7 +119,7 @@ func RunCommandMain(args []string) {
 		fmt.Fprintf(os.Stderr, "\n")
 		fmt.Fprintf(os.Stderr, "  OPTIONS:\n")
 		fmt.Fprintf(os.Stderr, "    -v, --verbose              Show the command before executing\n")
-		fmt.Fprintf(os.Stderr, "    --args <var>=<value>       Provide variable values (can be used multiple times)\n")
+		fmt.Fprintf(os.Stderr, "    -s, --set <var>=<value>     Set variable values (can be used multiple times)\n")
 		fmt.Fprintf(os.Stderr, "\n")
 		os.Exit(1)
 	}
