@@ -55,9 +55,8 @@ args:
 	}
 
 	// Create example script
-	exampleScript := `#!/bin/lineash
-# Linea Script Example with bash-like features
-# This script demonstrates variables, conditionals, and loops
+	exampleScript := `# Linea Script Example with friendly syntax
+# No shebang required! Scripts can run directly with: lineash scripts/script.lnsh
 # Note: Use $variable syntax in lineash (not {variable} which is for YAML)
 
 # Variables
@@ -66,22 +65,27 @@ VM_OS="alpine"
 
 echo "Starting VM creation..."
 
-# Conditional execution
-if [ "$VM_OS" = "alpine" ]
-then
+# Friendly conditional syntax
+if $VM_OS == "alpine"
     echo "Using Alpine Linux"
     # Pass variables to workflows using $variable syntax
-    create-vm -s name="$VM_NAME"
+    create-vm -s name=$VM_NAME
 else
     echo "Using different OS"
-fi
+end
 
-# For loop
+# Friendly for loop syntax
 for item in workflows scripts
-do
     echo "Checking $item..."
     ls
-done
+end
+
+# While loop with arithmetic
+counter=1
+while $counter <= 3
+    echo "Iteration $counter"
+    counter=$((counter + 1))
+end
 
 echo "Script completed!"
 `
@@ -111,14 +115,22 @@ echo "Script completed!"
 		"### Writing Scripts\n\n" +
 		"Scripts in `scripts/` can:\n" +
 		"- Execute workflows as commands (if they exist in `.linea/workflows/`)\n" +
-		"- Use bash-like syntax (variables, conditions, loops)\n" +
-		"- Call system commands\n\n" +
+		"- Use friendly syntax (variables, conditionals, loops)\n" +
+		"- Call system commands\n" +
+		"- No shebang required!\n\n" +
+		"**Friendly Syntax Features:**\n" +
+		"- Conditionals: `if $VAR == \"value\" ... else ... end`\n" +
+		"- For loops: `for item in list ... end`\n" +
+		"- While loops: `while condition ... end`\n" +
+		"- Arithmetic: `$((expression))`\n" +
+		"- Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`\n\n" +
 		"Example:\n" +
 		"```bash\n" +
-		"#!/bin/lineash\n" +
-		"echo \"Hello\"\n" +
-		"create-vm -s name=\"test\"\n" +
-		"ls\n" +
+		"# No shebang needed!\n" +
+		"VM_NAME=\"my-vm\"\n" +
+		"if $VM_NAME == \"my-vm\"\n" +
+		"    create-vm -s name=$VM_NAME\n" +
+		"end\n" +
 		"```\n"
 
 	if err := os.WriteFile(filepath.Join(appName, "README.md"), []byte(readme), 0644); err != nil {

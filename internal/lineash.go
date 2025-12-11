@@ -5,7 +5,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -15,6 +17,7 @@ type LineashContext struct {
 	WorkflowsDir string
 	ScriptDir    string
 	LineaPath    string
+	Args         []string // Positional parameters $1, $2, etc.
 }
 
 // NewLineashContext creates a new lineash context
@@ -60,6 +63,7 @@ func NewLineashContext(scriptPath string) (*LineashContext, error) {
 		WorkflowsDir: workflowsDir,
 		ScriptDir:    scriptDir,
 		LineaPath:    lineaPath,
+		Args:         []string{}, // Empty by default, can be set if args are passed
 	}, nil
 }
 
@@ -204,9 +208,15 @@ func stripEchoQuotes(cmdLine string) string {
 	return result
 }
 
-// SubstituteVariables replaces $variable references in a string
+// SubstituteVariables replaces $variable references, positional parameters, and arithmetic expressions
 func (ctx *LineashContext) SubstituteVariables(line string) string {
 	result := line
+	
+	// First, handle arithmetic expressions $((...))
+	result = substituteArithmetic(result, ctx)
+	
+	// Handle positional parameters $1, $2, etc.
+	result = substitutePositionalParams(result, ctx)
 	
 	// Sort variables by length (longest first) to avoid partial replacements
 	type varEntry struct {
@@ -266,6 +276,163 @@ func (ctx *LineashContext) SubstituteVariables(line string) string {
 	return result
 }
 
+// substitutePositionalParams replaces $1, $2, etc. with actual arguments
+func substitutePositionalParams(line string, ctx *LineashContext) string {
+	result := line
+	
+	// Match $1, $2, etc. (handle multi-digit numbers properly)
+	re := regexp.MustCompile(`\$(\d+)`)
+	matches := re.FindAllStringSubmatch(result, -1)
+	
+	for _, match := range matches {
+		paramNum, err := strconv.Atoi(match[1])
+		if err != nil {
+			continue
+		}
+		
+		// $1 is first arg, $2 is second, etc.
+		var replacement string
+		if paramNum > 0 && paramNum <= len(ctx.Args) {
+			replacement = ctx.Args[paramNum-1]
+		} else {
+			replacement = "" // Undefined parameter
+		}
+		
+		result = strings.Replace(result, match[0], replacement, 1)
+	}
+	
+	return result
+}
+
+// substituteArithmetic replaces $((expression)) with evaluated result
+func substituteArithmetic(line string, ctx *LineashContext) string {
+	result := line
+	
+	// Match $((...)) expressions
+	re := regexp.MustCompile(`\$\(\(([^)]+)\)\)`)
+	matches := re.FindAllStringSubmatch(result, -1)
+	
+	for _, match := range matches {
+		expr := strings.TrimSpace(match[1])
+		
+		// Substitute variables in expression first
+		// Handle $variable and ${variable} syntax
+		expr = substitutePositionalParams(expr, ctx)
+		
+		// Substitute variables - need to handle variable names that might be part of the expression
+		// Sort by length to avoid partial matches
+		type varEntry struct {
+			key   string
+			value string
+		}
+		vars := make([]varEntry, 0, len(ctx.Variables))
+		for key, value := range ctx.Variables {
+			vars = append(vars, varEntry{key, value})
+		}
+		
+		// Sort by key length descending
+		for i := 0; i < len(vars); i++ {
+			for j := i + 1; j < len(vars); j++ {
+				if len(vars[i].key) < len(vars[j].key) {
+					vars[i], vars[j] = vars[j], vars[i]
+				}
+			}
+		}
+		
+		// Replace variables (without $ prefix in arithmetic expressions)
+		for _, v := range vars {
+			// Replace variable name with its value
+			// Use word boundaries to avoid partial matches
+			expr = regexp.MustCompile(`\b`+regexp.QuoteMeta(v.key)+`\b`).ReplaceAllString(expr, v.value)
+		}
+		
+		// Also handle $variable syntax in arithmetic
+		for _, v := range vars {
+			expr = strings.ReplaceAll(expr, "$"+v.key, v.value)
+			expr = strings.ReplaceAll(expr, "${"+v.key+"}", v.value)
+		}
+		
+		// Evaluate arithmetic expression
+		value := evaluateArithmetic(expr)
+		result = strings.Replace(result, match[0], value, 1)
+	}
+	
+	return result
+}
+
+// evaluateArithmetic evaluates a simple arithmetic expression
+func evaluateArithmetic(expr string) string {
+	expr = strings.TrimSpace(expr)
+	
+	// Try to parse as integer
+	if val, err := strconv.Atoi(expr); err == nil {
+		return strconv.Itoa(val)
+	}
+	
+	// Handle basic arithmetic: +, -, *, /, %
+	// Split by operators while preserving them
+	parts := []string{}
+	current := ""
+	
+	for i := 0; i < len(expr); i++ {
+		char := expr[i]
+		if char == '+' || char == '-' || char == '*' || char == '/' || char == '%' {
+			if current != "" {
+				parts = append(parts, strings.TrimSpace(current))
+				current = ""
+			}
+			parts = append(parts, string(char))
+		} else {
+			current += string(char)
+		}
+	}
+	if current != "" {
+		parts = append(parts, strings.TrimSpace(current))
+	}
+	
+	if len(parts) == 0 {
+		return "0"
+	}
+	
+	// Parse first number
+	result, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return "0"
+	}
+	
+	// Apply operations
+	for i := 1; i < len(parts); i += 2 {
+		if i+1 >= len(parts) {
+			break
+		}
+		
+		op := parts[i]
+		val, err := strconv.Atoi(parts[i+1])
+		if err != nil {
+			continue
+		}
+		
+		switch op {
+		case "+":
+			result += val
+		case "-":
+			result -= val
+		case "*":
+			result *= val
+		case "/":
+			if val != 0 {
+				result /= val
+			}
+		case "%":
+			if val != 0 {
+				result %= val
+			}
+		}
+	}
+	
+	return strconv.Itoa(result)
+}
+
 // ExecuteLines executes script lines with bash-like control flow using a simple parser
 func ExecuteLines(ctx *LineashContext, scriptContent string) error {
 	lines := strings.Split(scriptContent, "\n")
@@ -289,6 +456,8 @@ func ExecuteLines(ctx *LineashContext, scriptContent string) error {
 		
 		// Handle variable assignment: VAR=value
 		if key, value, ok := parseVariableAssignment(line); ok {
+			// Substitute variables in value before assignment
+			value = ctx.SubstituteVariables(value)
 			ctx.Variables[key] = value
 			i++
 			continue
@@ -303,6 +472,12 @@ func ExecuteLines(ctx *LineashContext, scriptContent string) error {
 		// Handle for loop
 		if strings.HasPrefix(line, "for ") {
 			i = handleForLoop(ctx, lines, i)
+			continue
+		}
+		
+		// Handle while loop (friendly syntax)
+		if strings.HasPrefix(line, "while ") {
+			i = handleWhileLoop(ctx, lines, i)
 			continue
 		}
 		
@@ -404,72 +579,82 @@ func parseCommand(line string) []string {
 	return parts
 }
 
-// handleIfStatement handles if/else/fi blocks
+// handleIfStatement handles if/else/end blocks (friendly syntax)
+// Also supports backward compatibility with if/then/else/fi
 func handleIfStatement(ctx *LineashContext, lines []string, startIndex int) int {
 	line := strings.TrimSpace(lines[startIndex])
 	condition := strings.TrimSpace(strings.TrimPrefix(line, "if "))
 	
-	// Remove brackets if present
+	// Remove brackets if present (for backward compatibility)
 	condition = strings.Trim(condition, "[]")
 	condition = strings.TrimSpace(condition)
+	
+	// Substitute variables in condition
+	condition = ctx.SubstituteVariables(condition)
 	
 	// Evaluate condition
 	conditionMet := evaluateCondition(ctx, condition)
 	
-	// Find matching fi
-	fiIndex := findMatchingFi(lines, startIndex)
+	// Find matching end or fi (for backward compatibility)
+	endIndex := findMatchingEndOrFi(lines, startIndex)
 	
 	if conditionMet {
 		// Execute if block
-		for i := startIndex + 1; i < fiIndex; i++ {
+		for i := startIndex + 1; i < endIndex; i++ {
 			line := strings.TrimSpace(lines[i])
 			
-			// Skip "then" keyword
+			// Skip "then" keyword (for backward compatibility)
 			if line == "then" {
 				continue
 			}
 			
-			if line == "else" {
-				// Skip else block
+			if line == "else" || line == "elif" {
+				// Skip else/elif block
 				break
 			}
 			
-			if line == "fi" {
+			if line == "end" || line == "fi" {
 				break
 			}
 			
 			// Execute line
-			executeLine(ctx, line, i)
+			if err := executeLine(ctx, line, i); err != nil {
+				// Continue on error for now
+			}
 		}
-		} else {
-			// Find else block if present
-			elseIndex := -1
-			for i := startIndex + 1; i < fiIndex; i++ {
-				if strings.TrimSpace(lines[i]) == "else" {
-					elseIndex = i
+	} else {
+		// Find else block if present
+		elseIndex := -1
+		for i := startIndex + 1; i < endIndex; i++ {
+			trimmed := strings.TrimSpace(lines[i])
+			if trimmed == "else" {
+				elseIndex = i
+				break
+			}
+		}
+		
+		if elseIndex > 0 {
+			// Execute else block
+			for i := elseIndex + 1; i < endIndex; i++ {
+				line := strings.TrimSpace(lines[i])
+				if line == "end" || line == "fi" {
 					break
 				}
-			}
-			
-			if elseIndex > 0 {
-				// Execute else block
-				for i := elseIndex + 1; i < fiIndex; i++ {
-					line := strings.TrimSpace(lines[i])
-					if line == "fi" {
-						break
-					}
-					executeLine(ctx, line, i)
+				if err := executeLine(ctx, line, i); err != nil {
+					// Continue on error for now
 				}
 			}
 		}
+	}
 	
-	return fiIndex + 1
+	return endIndex + 1
 }
 
-// handleForLoop handles for loops
+// handleForLoop handles for loops with friendly syntax (for ... in ... end)
+// Also supports backward compatibility with for ... do ... done
 func handleForLoop(ctx *LineashContext, lines []string, startIndex int) int {
 	line := strings.TrimSpace(lines[startIndex])
-	// Parse: for VAR in value1 value2 value3; do
+	// Parse: for VAR in value1 value2 value3
 	parts := strings.Fields(line)
 	if len(parts) < 4 || parts[1] == "" || parts[2] != "in" {
 		return startIndex + 1
@@ -478,48 +663,92 @@ func handleForLoop(ctx *LineashContext, lines []string, startIndex int) int {
 	varName := parts[1]
 	values := parts[3:]
 	
-	// Remove "do" if present in the same line
+	// Remove "do" if present in the same line (for backward compatibility)
 	if len(values) > 0 && values[len(values)-1] == "do" {
 		values = values[:len(values)-1]
 	}
 	
-	// Find matching done
-	doneIndex := findMatchingDone(lines, startIndex)
-	
-	// Find "do" keyword (might be on next line)
-	doIndex := startIndex + 1
-	for doIndex < doneIndex && strings.TrimSpace(lines[doIndex]) != "do" {
-		doIndex++
+	// Substitute variables in values
+	for i, val := range values {
+		values[i] = ctx.SubstituteVariables(strings.Trim(val, "\"'"))
 	}
-	if doIndex >= doneIndex {
-		doIndex = startIndex + 1 // If no "do" found, start after for line
-	} else {
-		doIndex++ // Skip the "do" line
+	
+	// Find matching end or done (for backward compatibility)
+	endIndex := findMatchingEndOrDone(lines, startIndex)
+	
+	// Find body start (skip "do" if present for backward compatibility)
+	bodyStart := startIndex + 1
+	for bodyStart < endIndex && strings.TrimSpace(lines[bodyStart]) == "do" {
+		bodyStart++
 	}
 	
 	// Execute loop body for each value
 	for _, value := range values {
-		ctx.Variables[varName] = strings.Trim(value, "\"'")
+		ctx.Variables[varName] = value
 		
-		// Execute loop body (from doIndex to doneIndex)
-		for i := doIndex; i < doneIndex; i++ {
+		// Execute loop body
+		for i := bodyStart; i < endIndex; i++ {
 			line := strings.TrimSpace(lines[i])
 			
-			// Skip "do" keyword
+			// Skip "do" keyword (for backward compatibility)
 			if line == "do" {
 				continue
 			}
 			
-			if line == "done" {
+			if line == "end" || line == "done" {
 				break
 			}
+			
 			if err := executeLine(ctx, line, i); err != nil {
 				// Continue on error for now
 			}
 		}
 	}
 	
-	return doneIndex + 1
+	return endIndex + 1
+}
+
+// handleWhileLoop handles while loops with friendly syntax (while ... end)
+func handleWhileLoop(ctx *LineashContext, lines []string, startIndex int) int {
+	line := strings.TrimSpace(lines[startIndex])
+	condition := strings.TrimSpace(strings.TrimPrefix(line, "while "))
+	
+	// Find matching end
+	endIndex := findMatchingEnd(lines, startIndex)
+	
+	// Find body start (skip "do" if present for backward compatibility)
+	bodyStart := startIndex + 1
+	for bodyStart < endIndex && strings.TrimSpace(lines[bodyStart]) == "do" {
+		bodyStart++
+	}
+	
+	// Execute loop while condition is true
+	for {
+		// Evaluate condition (substitute variables first)
+		cond := ctx.SubstituteVariables(condition)
+		if !evaluateCondition(ctx, cond) {
+			break
+		}
+		
+		// Execute loop body
+		for i := bodyStart; i < endIndex; i++ {
+			line := strings.TrimSpace(lines[i])
+			
+			if line == "do" {
+				continue
+			}
+			
+			if line == "end" || line == "done" {
+				break
+			}
+			
+			if err := executeLine(ctx, line, i); err != nil {
+				// Continue on error for now
+			}
+		}
+	}
+	
+	return endIndex + 1
 }
 
 // executeLine executes a single line
@@ -531,6 +760,8 @@ func executeLine(ctx *LineashContext, line string, lineNum int) error {
 	
 	// Handle variable assignment
 	if key, value, ok := parseVariableAssignment(line); ok {
+		// Substitute variables in value before assignment
+		value = ctx.SubstituteVariables(value)
 		ctx.Variables[key] = value
 		return nil
 	}
@@ -556,34 +787,91 @@ func executeLine(ctx *LineashContext, line string, lineNum int) error {
 	return ctx.ExecuteSystemCommand(line)
 }
 
-// evaluateCondition evaluates a bash-like condition
+// evaluateCondition evaluates a condition with friendly operators (==, !=, <, >, <=, >=)
 func evaluateCondition(ctx *LineashContext, condition string) bool {
 	condition = strings.TrimSpace(condition)
 	
-	// Simple string comparison: [ "$VAR" = "value" ]
-	if strings.Contains(condition, "=") {
-		parts := strings.SplitN(condition, "=", 2)
-		if len(parts) == 2 {
-			left := strings.TrimSpace(parts[0])
-			right := strings.TrimSpace(parts[1])
-			
-			// Remove quotes and $ from left
-			left = strings.Trim(left, "\"'")
-			if strings.HasPrefix(left, "$") {
-				left = strings.TrimPrefix(left, "$")
-				left = strings.Trim(left, "{}")
+	// Handle comparison operators: ==, !=, <, >, <=, >=
+	// Check longer operators first to avoid matching shorter ones
+	operators := []struct {
+		op   string
+		len  int
+		fn   func(left, right string) bool
+	}{
+		{"<=", 2, func(l, r string) bool {
+			left, err1 := strconv.Atoi(strings.TrimSpace(l))
+			right, err2 := strconv.Atoi(strings.TrimSpace(r))
+			if err1 == nil && err2 == nil {
+				return left <= right
 			}
+			return strings.TrimSpace(l) <= strings.TrimSpace(r)
+		}},
+		{">=", 2, func(l, r string) bool {
+			left, err1 := strconv.Atoi(strings.TrimSpace(l))
+			right, err2 := strconv.Atoi(strings.TrimSpace(r))
+			if err1 == nil && err2 == nil {
+				return left >= right
+			}
+			return strings.TrimSpace(l) >= strings.TrimSpace(r)
+		}},
+		{"==", 2, func(l, r string) bool {
+			return strings.TrimSpace(l) == strings.TrimSpace(r)
+		}},
+		{"!=", 2, func(l, r string) bool {
+			return strings.TrimSpace(l) != strings.TrimSpace(r)
+		}},
+		{"<", 1, func(l, r string) bool {
+			left, err1 := strconv.Atoi(strings.TrimSpace(l))
+			right, err2 := strconv.Atoi(strings.TrimSpace(r))
+			if err1 == nil && err2 == nil {
+				return left < right
+			}
+			return strings.TrimSpace(l) < strings.TrimSpace(r)
+		}},
+		{">", 1, func(l, r string) bool {
+			left, err1 := strconv.Atoi(strings.TrimSpace(l))
+			right, err2 := strconv.Atoi(strings.TrimSpace(r))
+			if err1 == nil && err2 == nil {
+				return left > right
+			}
+			return strings.TrimSpace(l) > strings.TrimSpace(r)
+		}},
+		{"=", 1, func(l, r string) bool {
+			return strings.TrimSpace(l) == strings.TrimSpace(r)
+		}},
+	}
+	
+	for _, opInfo := range operators {
+		if idx := strings.Index(condition, opInfo.op); idx > 0 {
+			left := strings.TrimSpace(condition[:idx])
+			right := strings.TrimSpace(condition[idx+opInfo.len:])
 			
-			// Remove quotes from right
+			// Remove quotes
+			left = strings.Trim(left, "\"'")
 			right = strings.Trim(right, "\"'")
 			
-			// Get variable value
-			leftVal := ctx.Variables[left]
-			if leftVal == "" && !strings.HasPrefix(parts[0], "$") {
-				leftVal = left
+			// Variables should already be substituted by SubstituteVariables, but handle just in case
+			// Handle $variable references (in case substitution didn't happen)
+			if strings.HasPrefix(left, "$") {
+				varName := strings.TrimPrefix(left, "$")
+				varName = strings.Trim(varName, "{}")
+				if val, ok := ctx.Variables[varName]; ok {
+					left = val
+				} else {
+					left = "" // Undefined variable
+				}
+			}
+			if strings.HasPrefix(right, "$") {
+				varName := strings.TrimPrefix(right, "$")
+				varName = strings.Trim(varName, "{}")
+				if val, ok := ctx.Variables[varName]; ok {
+					right = val
+				} else {
+					right = "" // Undefined variable
+				}
 			}
 			
-			return leftVal == right
+			return opInfo.fn(left, right)
 		}
 	}
 	
@@ -607,15 +895,16 @@ func evaluateCondition(ctx *LineashContext, condition string) bool {
 	return false
 }
 
-// findMatchingFi finds the matching 'fi' for an 'if' statement
-func findMatchingFi(lines []string, ifIndex int) int {
+// findMatchingEnd finds the matching 'end' for friendly syntax
+func findMatchingEnd(lines []string, startIndex int) int {
 	depth := 1
-	for i := ifIndex + 1; i < len(lines); i++ {
+	for i := startIndex + 1; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
-		if strings.HasPrefix(line, "if ") {
+		// Check for nested blocks
+		if strings.HasPrefix(line, "if ") || strings.HasPrefix(line, "for ") || strings.HasPrefix(line, "while ") {
 			depth++
 		}
-		if line == "fi" {
+		if line == "end" {
 			depth--
 			if depth == 0 {
 				return i
@@ -625,15 +914,33 @@ func findMatchingFi(lines []string, ifIndex int) int {
 	return len(lines)
 }
 
-// findMatchingDone finds the matching 'done' for a 'for' statement
-func findMatchingDone(lines []string, forIndex int) int {
+// findMatchingEndOrFi finds matching 'end' or 'fi' (for backward compatibility)
+func findMatchingEndOrFi(lines []string, ifIndex int) int {
+	depth := 1
+	for i := ifIndex + 1; i < len(lines); i++ {
+		line := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(line, "if ") {
+			depth++
+		}
+		if line == "end" || line == "fi" {
+			depth--
+			if depth == 0 {
+				return i
+			}
+		}
+	}
+	return len(lines)
+}
+
+// findMatchingEndOrDone finds matching 'end' or 'done' (for backward compatibility)
+func findMatchingEndOrDone(lines []string, forIndex int) int {
 	depth := 1
 	for i := forIndex + 1; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
-		if strings.HasPrefix(line, "for ") {
+		if strings.HasPrefix(line, "for ") || strings.HasPrefix(line, "while ") {
 			depth++
 		}
-		if line == "done" {
+		if line == "end" || line == "done" {
 			depth--
 			if depth == 0 {
 				return i
