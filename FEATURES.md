@@ -26,7 +26,7 @@ Linea automatically handles OS-specific differences, making your YAML files work
 
 ### 3. Variable Substitution
 
-Two syntaxes are supported for variable substitution:
+Two syntaxes are supported for variable substitution with different override behaviors:
 
 **Curly Brace Syntax:**
 ```yaml
@@ -42,7 +42,7 @@ args:
 
 **Variable Sources:**
 - Defined in YAML `variables` section
-- Provided via command-line `--args` flag
+- Provided via command-line `-s/--set` flag
 - Command-line variables override YAML variables
 
 ### 4. Command-Line Variable Override
@@ -50,7 +50,7 @@ args:
 Pass variables at runtime without modifying YAML files:
 
 ```bash
-linea run config.yml --args variable="value"
+linea run config.yml -s/--set variable="value"
 ```
 
 **Use Cases:**
@@ -66,7 +66,7 @@ Linea validates that all referenced variables are defined before execution, prev
 **Features:**
 - Detects undefined variables in args and variable values
 - Clear error messages indicating missing variables
-- Suggests using `--args` to provide missing values
+- Suggests using `-s/--set` to provide missing values
 - Validates both `{variable}` and `$variable` syntaxes
 
 ### 6. Dry-Run Mode
@@ -153,6 +153,66 @@ args:
 - Flag preservation (doesn't normalize flags like `/?`, `-v`, etc.)
 
 ## Advanced Features
+
+### Linea App
+
+Create structured application directories with workflows and scripts:
+
+```bash
+linea app create my-app
+```
+
+Creates a directory structure:
+```
+my-app/
+├─ .linea/workflows/    # Workflow YAML files (executable as commands)
+├─ scripts/             # Lineash scripts (.lnsh files)
+└─ README.md
+```
+
+**Benefits:**
+- Organize workflows in a structured directory
+- Execute workflows as commands from scripts
+- Share app configurations with teams
+- Version control entire app structures
+
+### Lineash Scripts
+
+Execute bash-like scripts that can run Linea workflows as first-class commands:
+
+```bash
+lineash scripts/deploy.lnsh
+```
+
+**Features:**
+- **Variables**: `VAR="value"` and `$VAR` substitution
+- **Conditionals**: `if [ condition ]; then ... fi`
+- **Loops**: `for VAR in values; do ... done`
+- **Workflow Commands**: Workflows in `.linea/workflows/` become executable commands
+- **System Commands**: Unknown commands forwarded to system shell
+
+**Example:**
+```bash
+#!/bin/lineash
+VM_NAME="my-vm"
+VM_OS="alpine"
+
+if [ "$VM_OS" = "alpine" ]
+then
+    create-vm -s/--set name="$VM_NAME"
+fi
+
+for env in dev staging prod
+do
+    deploy -s/--set environment="$env"
+done
+```
+
+**How It Works:**
+1. Lineash scans `.linea/workflows/` for available workflows
+2. Workflows become executable commands in scripts
+3. Unknown commands are forwarded to the system shell
+4. Variables, conditionals, and loops work like bash
 
 ### Nested Variable References
 

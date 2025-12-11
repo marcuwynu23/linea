@@ -10,8 +10,11 @@ Complete documentation for Linea CLI tool.
 4. [Command Reference](#command-reference)
 5. [Variables](#variables)
 6. [Cross-Platform Support](#cross-platform-support)
-7. [Examples](#examples)
-8. [Troubleshooting](#troubleshooting)
+7. [Advanced Features](#advanced-features)
+   - [Linea App](#linea-app)
+   - [Lineash Scripts](#lineash-scripts)
+8. [Examples](#examples)
+9. [Troubleshooting](#troubleshooting)
 
 ## Installation
 
@@ -130,7 +133,7 @@ linea run [options] <yaml-file>
 
 **Options:**
 - `-v, --verbose`: Show the command before executing
-- `--args <var>=<value>`: Provide variable values
+- `-s/--set <var>=<value>`: Provide variable values
 
 **Examples:**
 ```bash
@@ -141,7 +144,7 @@ linea run config.yml
 linea run -v config.yml
 
 # With command-line variables
-linea run config.yml --args name="John" --args age=30
+linea run config.yml -s/--set name="John" -s/--set age=30
 ```
 
 ### `test`
@@ -154,7 +157,7 @@ linea test [options] <yaml-file>
 ```
 
 **Options:**
-- `--args <var>=<value>`: Provide variable values for testing
+- `-s/--set <var>=<value>`: Provide variable values for testing
 
 **Examples:**
 ```bash
@@ -162,7 +165,7 @@ linea test [options] <yaml-file>
 linea test config.yml
 
 # Test with variables
-linea test config.yml --args variable="test"
+linea test config.yml -s/--set variable="test"
 ```
 
 **Output:**
@@ -245,7 +248,7 @@ variables:
 
 2. **Via command-line:**
 ```bash
-linea run config.yml --args name="John"
+linea run config.yml -s/--set name="John"
 ```
 
 **Priority:** Command-line variables override YAML variables.
@@ -268,13 +271,28 @@ variables:
 
 Result: `echo Hello, World!`
 
+**Advanced Example with Override Behavior:**
+```yaml
+command: echo
+args:
+  - "Protected: {name}, Overridable: $name"
+variables:
+  name: "default-value"
+```
+
+```bash
+# {name} always uses "default-value", $name can be overridden
+linea run config.yml -s/--set name="custom-value"
+# Output: Protected: default-value, Overridable: custom-value
+```
+
 ### Variable Validation
 
 Linea validates that all referenced variables are defined:
 
 ```bash
 $ linea run config.yml
-Error: undefined variables: name (use --args to provide values)
+Error: undefined variables: name (use -s/--set to provide values)
 ```
 
 ## Cross-Platform Support
@@ -302,6 +320,93 @@ Flags are not normalized:
 ### Windows Shell Built-ins
 
 On Windows, shell built-ins (like `echo`, `dir`) are automatically executed through `cmd.exe` when not found in PATH.
+
+## Advanced Features
+
+### Linea App
+
+Create structured application directories with workflows and scripts:
+
+```bash
+linea app create my-app
+```
+
+This creates a directory structure:
+```
+my-app/
+├─ .linea/workflows/    # Workflow YAML files (executable as commands)
+├─ scripts/             # Lineash scripts (.lnsh files)
+└─ README.md
+```
+
+**Usage:**
+```bash
+# Create a new Linea App
+linea app create my-app
+
+# Navigate to the app
+cd my-app
+
+# Run workflows directly
+linea run .linea/workflows/create-vm.yml -s/--set name="my-vm"
+
+# Or use lineash scripts
+lineash scripts/deploy.lnsh
+```
+
+**Benefits:**
+- Organize workflows in a structured directory
+- Execute workflows as commands from scripts
+- Share app configurations with teams
+- Version control entire app structures
+
+### Lineash Scripts
+
+Execute bash-like scripts that can run Linea workflows as first-class commands:
+
+```bash
+lineash scripts/deploy.lnsh
+```
+
+**Features:**
+- **Variables**: `VAR="value"` and `$VAR` substitution
+- **Conditionals**: `if [ condition ]; then ... fi`
+- **Loops**: `for VAR in values; do ... done`
+- **Workflow Commands**: Workflows in `.linea/workflows/` become executable commands
+- **System Commands**: Unknown commands forwarded to system shell
+
+**Example Script:**
+```bash
+#!/bin/lineash
+# Lineash script example
+
+VM_NAME="my-vm"
+VM_OS="alpine"
+
+echo "Starting deployment..."
+
+# Conditional execution
+if [ "$VM_OS" = "alpine" ]
+then
+    echo "Using Alpine Linux"
+    create-vm -s/--set name="$VM_NAME"
+fi
+
+# For loop
+for env in dev staging prod
+do
+    echo "Deploying to $env..."
+    deploy -s/--set environment="$env"
+done
+
+echo "Deployment complete!"
+```
+
+**How It Works:**
+1. Lineash scans `.linea/workflows/` for available workflows
+2. Workflows become executable commands in scripts
+3. Unknown commands are forwarded to the system shell
+4. Variables, conditionals, and loops work like bash
 
 ## Examples
 
@@ -334,6 +439,7 @@ linea run docker-ps.yml
 
 ### Using Variables
 
+**With `{variable}` syntax (protected, not overridable):**
 ```yaml
 # greet.yml
 command: echo
@@ -347,8 +453,27 @@ variables:
 linea run greet.yml
 # Output: Hello, World!
 
-# Override variable
-linea run greet.yml --args name="John"
+# {name} cannot be overridden - always uses "World"
+linea run greet.yml -s/--set name="John"
+# Output: Hello, World!
+```
+
+**With `$variable` syntax (overridable):**
+```yaml
+# greet.yml
+command: echo
+args:
+  - "Hello, $name!"
+variables:
+  name: "World"
+```
+
+```bash
+linea run greet.yml
+# Output: Hello, World!
+
+# $name can be overridden
+linea run greet.yml -s/--set name="John"
 # Output: Hello, John!
 ```
 
@@ -372,7 +497,7 @@ variables:
 ```
 
 ```bash
-linea run build.yml --args tag="v1.0.0"
+linea run build.yml -s/--set tag="v1.0.0"
 ```
 
 ## Troubleshooting
@@ -391,7 +516,7 @@ linea run build.yml --args tag="v1.0.0"
 
 **Solution:** 
 - Define the variable in the YAML `variables` section, or
-- Provide it via `--args` flag: `--args variable="value"`
+- Provide it via `-s/--set` flag: `-s/--set variable="value"`
 
 #### "failed to parse YAML file"
 
@@ -426,6 +551,10 @@ linea run build.yml --args tag="v1.0.0"
 
 ## Advanced Usage
 
+### Linea App and Lineash
+
+For detailed information about Linea App and Lineash scripts, see the [Advanced Features](#advanced-features) section above.
+
 ### Nested Variables
 
 Variables can reference other variables:
@@ -447,7 +576,7 @@ variables:
 ```
 
 ```bash
-linea run config.yml --args env="production"
+linea run config.yml -s/--set env="production"
 ```
 
 The command-line value (`production`) overrides the YAML value (`development`).
