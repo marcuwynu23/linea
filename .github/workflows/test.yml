@@ -1,0 +1,168 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test on Go ${{ matrix.go-version }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        go-version: ['1.21', '1.22', '1.23']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test ./tests -v
+
+      - name: Run tests with coverage
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
+        run: go test ./tests -coverprofile=coverage.out
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          fail_ci_if_error: false
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m --skip-files-use-default-excludes
+        continue-on-error: true
+
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            linea_binary: bin/linea
+            lineash_binary: bin/lineash
+          - os: windows-latest
+            linea_binary: bin/linea.exe
+            lineash_binary: bin/lineash.exe
+          - os: macos-latest
+            linea_binary: bin/linea
+            lineash_binary: bin/lineash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Create bin directory
+        shell: bash
+        run: mkdir -p bin
+
+      - name: Build linea binary
+        shell: bash
+        run: |
+          echo "Building binary: ${{ matrix.linea_binary }}"
+          go build -v -o ${{ matrix.linea_binary }} main.go
+          BUILD_EXIT=$?
+          echo "Build exit code: $BUILD_EXIT"
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "❌ Build failed with exit code $BUILD_EXIT"
+            exit 1
+          fi
+          echo "✅ Build command completed successfully"
+          echo "Checking if binary was created:"
+          ls -la ${{ matrix.linea_binary }} 2>/dev/null && echo "Binary exists!" || echo "Binary NOT found!"
+
+      - name: Build lineash binary
+        shell: bash
+        run: |
+          echo "Building binary: ${{ matrix.lineash_binary }}"
+          go build -v -o ${{ matrix.lineash_binary }} lineash/main.go
+          BUILD_EXIT=$?
+          echo "Build exit code: $BUILD_EXIT"
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "❌ Build failed with exit code $BUILD_EXIT"
+            exit 1
+          fi
+          echo "✅ Build command completed successfully"
+          echo "Checking if binary was created:"
+          ls -la ${{ matrix.lineash_binary }} 2>/dev/null && echo "Binary exists!" || echo "Binary NOT found!"
+
+      - name: Verify binaries exist (Linux/macOS)
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          LINEA_BINARY="${{ matrix.linea_binary }}"
+          LINEASH_BINARY="${{ matrix.lineash_binary }}"
+          echo "Checking for binaries: $LINEA_BINARY and $LINEASH_BINARY"
+          if [ -f "$LINEA_BINARY" ] && [ -f "$LINEASH_BINARY" ]; then
+            echo "✓ Binary $LINEA_BINARY found successfully"
+            ls -lh "$LINEA_BINARY"
+            echo "✓ Binary $LINEASH_BINARY found successfully"
+            ls -lh "$LINEASH_BINARY"
+          else
+            echo "✗ One or more binaries not found"
+            echo "Contents of bin directory:"
+            ls -la bin/ 2>/dev/null || echo "bin directory doesn't exist"
+            exit 1
+          fi
+
+      - name: Verify binaries exist (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $lineaBinary = "${{ matrix.linea_binary }}"
+          $lineashBinary = "${{ matrix.lineash_binary }}"
+          Write-Host "Checking for binaries: $lineaBinary and $lineashBinary"
+          if ((Test-Path $lineaBinary) -and (Test-Path $lineashBinary)) {
+            Write-Host "✓ Binary $lineaBinary found successfully"
+            Get-Item $lineaBinary | Format-List
+            Write-Host "✓ Binary $lineashBinary found successfully"
+            Get-Item $lineashBinary | Format-List
+          } else {
+            Write-Host "✗ One or more binaries not found"
+            Write-Host "Contents of bin directory:"
+            Get-ChildItem bin/ -ErrorAction SilentlyContinue | Format-Table Name, Length
+            exit 1
+          }
+
