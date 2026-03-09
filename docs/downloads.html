@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Downloads — Linea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container-fluid">
+      <a href="index.html" class="site-logo">Linea</a>
+      <nav>
+        <ul class="nav-list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="features.html">Features</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="downloads.html">Downloads</a></li>
+          <li><a href="https://github.com/marcuwynu23/linea" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section>
+      <div class="container-fluid">
+        <h1 class="page-title">Downloads</h1>
+        <p>Releases are published on GitHub. Each release includes <strong>linea</strong> and <strong>lineash</strong> for multiple platforms.</p>
+        <ul class="downloads-list">
+          <li>
+            <a href="https://github.com/marcuwynu23/linea/releases" target="_blank" rel="noopener">Releases → GitHub</a>
+            <span class="meta">Source and pre-built binaries</span>
+          </li>
+          <li>
+            <span class="meta"><strong>Linux:</strong> amd64, 386, arm64 (.tar.gz)</span>
+          </li>
+          <li>
+            <span class="meta"><strong>Windows:</strong> amd64, 386, arm64 (.zip)</span>
+          </li>
+          <li>
+            <span class="meta"><strong>macOS:</strong> amd64, arm64 (.tar.gz)</span>
+          </li>
+        </ul>
+        <p style="margin-top: 1.5rem;">Or build from source:</p>
+        <pre class="code-block">go build -o bin/linea
+<span class="cmd"># Windows:</span> go build -o bin/linea.exe
+
+<span class="cmd"># Install:</span> go install</pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container-fluid">
+      <span>Linea — Cross-Platform YAML-Driven Command Execution</span>
+      <div class="footer-links">
+        <a href="https://github.com/marcuwynu23/linea">GitHub</a>
+        <a href="https://github.com/marcuwynu23/linea/issues">Issues</a>
+        <a href="https://github.com/marcuwynu23/linea/blob/main/LICENSE">License (MIT)</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

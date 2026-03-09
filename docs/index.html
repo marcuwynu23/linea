@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linea — Commandline Workflow Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container-fluid">
+      <a href="index.html" class="site-logo">Linea</a>
+      <nav>
+        <ul class="nav-list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="features.html">Features</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="downloads.html">Downloads</a></li>
+          <li><a href="https://github.com/marcuwynu23/linea" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-inner">
+        <div class="hero-content">
+          <h1>Linea</h1>
+          <p class="tagline">Commandline Workflow Tool</p>
+          <p class="hero-desc">
+            Define and run workflows in YAML. One file works on Windows, Linux, and macOS—version control your commands, override variables at runtime, and dry-run before you execute. No more platform-specific scripts.
+          </p>
+          <div class="hero-tags">
+            <span>CLI</span>
+            <span>YAML</span>
+            <span>cross-platform</span>
+            <span>workflows</span>
+            <span>variables</span>
+            <span>dry-run</span>
+          </div>
+          <div class="hero-cta">
+            <a href="downloads.html" class="btn btn-primary">Get Linea</a>
+            <a href="documentation.html" class="btn btn-outline">See how it works</a>
+          </div>
+        </div>
+        <div class="hero-script">
+          <div class="hero-script-editor">
+            <div class="hero-script-tabbar">
+              <div class="hero-script-tab active"><span>echo-variables.yml</span></div>
+            </div>
+            <pre><code><span class="yaml-comment"># Echo command with variable substitution</span>
+<span class="yaml-key">command:</span> <span class="yaml-string">echo</span>
+<span class="yaml-key">args:</span>
+  - <span class="yaml-string">"Message: {message}"</span>
+  - <span class="yaml-string">"User: {user}"</span>
+<span class="yaml-key">variables:</span>
+  <span class="yaml-key">message:</span> <span class="yaml-string">"Welcome to Linea CLI"</span>
+  <span class="yaml-key">user:</span> <span class="yaml-string">"Developer"</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container-fluid">
+        <p style="margin: 0; max-width: 600px;">Linea organizes commands into workflows using YAML. Define and manage complex command-line tasks the same way on Windows, Linux, and macOS.</p>
+        <p style="margin-top: 1rem;">
+          <a href="features.html">Features</a> ·
+          <a href="documentation.html">Documentation</a> ·
+          <a href="downloads.html">Downloads</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container-fluid">
+      <span>Linea — Cross-Platform YAML-Driven Command Execution</span>
+      <div class="footer-links">
+        <a href="https://github.com/marcuwynu23/linea">GitHub</a>
+        <a href="https://github.com/marcuwynu23/linea/issues">Issues</a>
+        <a href="https://github.com/marcuwynu23/linea/blob/main/LICENSE">License (MIT)</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

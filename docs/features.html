@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Features — Linea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container-fluid">
+      <a href="index.html" class="site-logo">Linea</a>
+      <nav>
+        <ul class="nav-list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="features.html">Features</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="downloads.html">Downloads</a></li>
+          <li><a href="https://github.com/marcuwynu23/linea" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section>
+      <div class="container-fluid">
+        <h1 class="page-title">Features</h1>
+        <div class="features-grid">
+          <div class="feature-card">
+            <h3>YAML-Driven Execution</h3>
+            <p>Define commands, subcommands, and arguments in YAML. Version control, share, and document workflows easily.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Cross-Platform</h3>
+            <p>Automatic OS detection, path separator conversion, and Windows shell built-in support. One YAML works everywhere.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Variable Substitution</h3>
+            <p>Use <code>{variable}</code> or <code>$variable</code> with validation. Override at runtime with <code>-s/--set</code>.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Dry-Run Mode</h3>
+            <p>Preview commands without executing: <code>linea test workflow.yml</code>. Safe testing and debugging.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Linea App</h3>
+            <p>Create structured app dirs with <code>linea app create my-app</code>: workflows in <code>.linea/workflows/</code> and Lineash scripts.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Lineash Scripts</h3>
+            <p>Bash-like scripts (conditionals, loops, variables) that run Linea workflows as first-class commands.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Help & Init</h3>
+            <p><code>linea help file.yml</code> shows command info; <code>linea init file.yml</code> scaffolds a new workflow with docs.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Multiple Commands</h3>
+            <p>Separate commands with <code>---</code> in one file. Run sequences, build workflows, version control entire flows.</p>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 2.5rem; margin-bottom: 1rem; font-weight: 700;">Why Linea?</h3>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Traditional Scripts</th>
+              <th>Linea</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Cross-platform</strong></td><td>Separate scripts per OS</td><td>Single YAML works everywhere</td></tr>
+            <tr><td><strong>Version control</strong></td><td>Hard to review changes</td><td>Easy to diff and merge</td></tr>
+            <tr><td><strong>Validation</strong></td><td>Runtime errors only</td><td>Pre-execution validation</td></tr>
+            <tr><td><strong>Documentation</strong></td><td>Comments in code</td><td>Self-documenting structure</td></tr>
+            <tr><td><strong>Testing</strong></td><td>Manual execution</td><td>Built-in dry-run mode</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container-fluid">
+      <span>Linea — Cross-Platform YAML-Driven Command Execution</span>
+      <div class="footer-links">
+        <a href="https://github.com/marcuwynu23/linea">GitHub</a>
+        <a href="https://github.com/marcuwynu23/linea/issues">Issues</a>
+        <a href="https://github.com/marcuwynu23/linea/blob/main/LICENSE">License (MIT)</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
