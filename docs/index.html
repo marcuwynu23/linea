@@ -13,6 +13,11 @@
   <header class="site-header">
     <div class="container-fluid">
       <a href="index.html" class="site-logo">Linea</a>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-drawer">
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+        <span class="nav-toggle__bar"></span>
+      </button>
       <nav>
         <ul class="nav-list">
           <li><a href="index.html">Home</a></li>
@@ -22,6 +27,16 @@
           <li><a href="https://github.com/marcuwynu23/linea" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
       </nav>
+      <div class="nav-backdrop" id="nav-backdrop" aria-hidden="true"></div>
+      <div class="nav-drawer" id="nav-drawer" role="dialog" aria-label="Navigation menu" aria-hidden="true">
+        <ul class="nav-drawer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="features.html">Features</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="downloads.html">Downloads</a></li>
+          <li><a href="https://github.com/marcuwynu23/linea" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </div>
     </div>
   </header>
 
@@ -87,5 +102,6 @@
       </div>
     </div>
   </footer>
+  <script src="nav.js"></script>
 </body>
 </html>
