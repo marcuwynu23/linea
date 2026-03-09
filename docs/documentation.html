@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation — Linea</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container-fluid">
+      <a href="index.html" class="site-logo">Linea</a>
+      <nav>
+        <ul class="nav-list">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="features.html">Features</a></li>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="downloads.html">Downloads</a></li>
+          <li><a href="https://github.com/marcuwynu23/linea" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="doc-layout">
+      <aside class="doc-sidebar">
+        <nav class="doc-toc" aria-label="Table of contents">
+          <strong>Table of Contents</strong>
+          <ul>
+            <li><a href="#installation">1. Installation</a></li>
+            <li><a href="#quick-start">2. Quick Start</a></li>
+            <li><a href="#yaml-format">3. YAML File Format</a></li>
+            <li><a href="#command-reference">4. Command Reference</a></li>
+            <li><a href="#variables">5. Variables</a></li>
+            <li><a href="#cross-platform">6. Cross-Platform Support</a></li>
+            <li><a href="#advanced">7. Advanced Features</a>
+              <ul class="toc-sub">
+                <li><a href="#linea-app">Linea App</a></li>
+                <li><a href="#lineash">Lineash Scripts</a></li>
+              </ul>
+            </li>
+            <li><a href="#examples">8. Examples</a></li>
+            <li><a href="#troubleshooting">9. Troubleshooting</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+            <li><a href="#advanced-usage">Advanced Usage</a></li>
+          </ul>
+        </nav>
+      </aside>
+      <div class="doc-body">
+        <h1 class="page-title">Documentation</h1>
+        <p>Complete documentation for Linea CLI tool.</p>
+
+        <div class="doc-content">
+          <div class="doc-page active" data-page="1" id="page-1">
+          <h2 id="installation">Installation</h2>
+          <h3>Prerequisites</h3>
+          <ul>
+            <li>Go 1.18 or higher</li>
+            <li>Git (for cloning the repository)</li>
+          </ul>
+          <h3>Building from Source</h3>
+          <pre class="code-block"><span class="cmd"># Clone the repository</span>
+git clone &lt;repository-url&gt;
+cd linea
+
+<span class="cmd"># Build for your platform</span>
+go build -o bin/linea
+
+<span class="cmd"># On Windows</span>
+go build -o bin/linea.exe</pre>
+          <h3>Installing via Go</h3>
+          <pre class="code-block">go install</pre>
+          </div>
+          <div class="doc-page" data-page="2" id="page-2">
+          <h2 id="quick-start">Quick Start</h2>
+          <p>1. Create a YAML file:</p>
+          <pre class="code-block"><span class="arg"># hello.yml</span>
+command: echo
+args:
+  - "Hello, World!"</pre>
+          <p>2. Run it:</p>
+          <pre class="code-block">linea run hello.yml</pre>
+          <p>3. Output:</p>
+          <pre class="code-block">Hello, World!</pre>
+          </div>
+          <div class="doc-page" data-page="3" id="page-3">
+          <h2 id="yaml-format">YAML File Format</h2>
+          <h3>Basic Structure</h3>
+          <pre class="code-block">command: &lt;command-name&gt;
+subcommand: &lt;optional-subcommand&gt;
+args:
+  - &lt;argument1&gt;
+  - &lt;argument2&gt;
+variables:
+  &lt;var1&gt;: &lt;value1&gt;
+  &lt;var2&gt;: &lt;value2&gt;</pre>
+          <h3>Field Descriptions</h3>
+          <h4><code>command</code> (required)</h4>
+          <p>The main command to execute. Must be a valid executable or shell built-in.</p>
+          <pre class="code-block">command: docker</pre>
+          <h4><code>subcommand</code> (optional)</h4>
+          <p>A subcommand for the main command.</p>
+          <pre class="code-block">command: docker
+subcommand: ps</pre>
+          <h4><code>args</code> (optional)</h4>
+          <p>List of arguments to pass to the command.</p>
+          <pre class="code-block">args:
+  - -a
+  - -l
+  - "/path/to/file"</pre>
+          <h4><code>variables</code> (optional)</h4>
+          <p>Key-value pairs for variable substitution.</p>
+          <pre class="code-block">variables:
+  name: "John"
+  path: "/home/user"</pre>
+          </div>
+          <div class="doc-page" data-page="4" id="page-4">
+          <h2 id="command-reference">Command Reference</h2>
+          <h3><code>run</code></h3>
+          <p>Execute a command defined in a YAML file.</p>
+          <p><strong>Syntax:</strong></p>
+          <pre class="code-block">linea run [options] &lt;yaml-file&gt;</pre>
+          <p><strong>Options:</strong></p>
+          <ul>
+            <li><code>-v, --verbose</code>: Show the command before executing</li>
+            <li><code>-s/--set &lt;var&gt;=&lt;value&gt;</code>: Provide variable values</li>
+          </ul>
+          <p><strong>Examples:</strong></p>
+          <pre class="code-block"><span class="cmd"># Basic execution</span>
+linea run config.yml
+
+<span class="cmd"># With verbose output</span>
+linea run -v config.yml
+
+<span class="cmd"># With command-line variables</span>
+linea run config.yml -s/--set name="John" -s/--set age=30</pre>
+
+          <h3><code>test</code></h3>
+          <p>Perform a dry-run of a command without executing it.</p>
+          <p><strong>Syntax:</strong></p>
+          <pre class="code-block">linea test [options] &lt;yaml-file&gt;</pre>
+          <p><strong>Options:</strong></p>
+          <ul>
+            <li><code>-s/--set &lt;var&gt;=&lt;value&gt;</code>: Provide variable values for testing</li>
+          </ul>
+          <p><strong>Examples:</strong></p>
+          <pre class="code-block"><span class="cmd"># Dry-run a command</span>
+linea test config.yml
+
+<span class="cmd"># Test with variables</span>
+linea test config.yml -s/--set variable="test"</pre>
+          <p><strong>Output:</strong></p>
+          <pre class="code-block">Dry run - would execute:
+&lt;full-command&gt;</pre>
+
+          <h3><code>help</code></h3>
+          <p>Display information about a command defined in a YAML file.</p>
+          <p><strong>Syntax:</strong></p>
+          <pre class="code-block">linea help &lt;yaml-file&gt;</pre>
+          <p><strong>Example:</strong></p>
+          <pre class="code-block">linea help config.yml</pre>
+          <p><strong>Output:</strong></p>
+          <pre class="code-block">Command: docker
+Subcommand: ps
+Arguments: [-a]
+
+Full command: docker ps -a</pre>
+
+          <h3><code>init</code></h3>
+          <p>Initialize a new workflow YAML file with template and documentation.</p>
+          <p><strong>Syntax:</strong></p>
+          <pre class="code-block">linea init &lt;file-name&gt;</pre>
+          <p><strong>Examples:</strong></p>
+          <pre class="code-block"><span class="cmd"># Create a new workflow file</span>
+linea init workflow.yml
+
+<span class="cmd"># Create in a specific directory</span>
+linea init examples/my-workflow.yml
+
+<span class="cmd"># Create with custom name</span>
+linea init deploy-commands.yml</pre>
+          <p><strong>What it creates:</strong></p>
+          <ul>
+            <li>Template YAML structure</li>
+            <li>Documentation comments explaining each field</li>
+            <li>Example usage instructions</li>
+            <li>Variable examples</li>
+            <li>Multiple commands example (commented)</li>
+          </ul>
+          <p><strong>Note:</strong> The command will fail if the file already exists to prevent overwriting.</p>
+          </div>
+          <div class="doc-page" data-page="5" id="page-5">
+          <h2 id="variables">Variables</h2>
+          <h3>Variable Syntax</h3>
+          <p>Linea supports two variable syntaxes:</p>
+          <ol>
+            <li><strong>Curly Brace Syntax:</strong> <code>{variable}</code></li>
+            <li><strong>Dollar Sign Syntax:</strong> <code>$variable</code></li>
+          </ol>
+          <h3>Variable Sources</h3>
+          <p>Variables can be defined in two ways:</p>
+          <ol>
+            <li><strong>In YAML file:</strong></li>
+          </ol>
+          <pre class="code-block">variables:
+  name: "John"</pre>
+          <ol start="2">
+            <li><strong>Via command-line:</strong></li>
+          </ol>
+          <pre class="code-block">linea run config.yml -s/--set name="John"</pre>
+          <p><strong>Priority:</strong> Command-line variables override YAML variables.</p>
+          <h3>Variable Substitution</h3>
+          <p>Variables are substituted in:</p>
+          <ul>
+            <li>Command arguments</li>
+            <li>Variable values (nested substitution)</li>
+          </ul>
+          <p><strong>Example:</strong></p>
+          <pre class="code-block">command: echo
+args:
+  - "{greeting}, {name}!"
+variables:
+  greeting: "Hello"
+  name: "World"</pre>
+          <p>Result: <code>echo Hello, World!</code></p>
+          <p><strong>Advanced Example with Override Behavior:</strong></p>
+          <pre class="code-block">command: echo
+args:
+  - "Protected: {name}, Overridable: $name"
+variables:
+  name: "default-value"</pre>
+          <pre class="code-block"><span class="cmd"># {name} always uses "default-value", $name can be overridden</span>
+linea run config.yml -s/--set name="custom-value"
+<span class="cmd"># Output: Protected: default-value, Overridable: custom-value</span></pre>
+          <h3>Variable Validation</h3>
+          <p>Linea validates that all referenced variables are defined:</p>
+          <pre class="code-block">$ linea run config.yml
+Error: undefined variables: name (use -s/--set to provide values)</pre>
+          </div>
+          <div class="doc-page" data-page="6" id="page-6">
+          <h2 id="cross-platform">Cross-Platform Support</h2>
+          <h3>Path Normalization</h3>
+          <p>Linea automatically normalizes paths based on the operating system:</p>
+          <ul>
+            <li><strong>Windows:</strong> Converts <code>/</code> to <code>\</code></li>
+            <li><strong>Unix/Linux/macOS:</strong> Converts <code>\</code> to <code>/</code></li>
+          </ul>
+          <p><strong>Example:</strong></p>
+          <pre class="code-block">args:
+  - "C:/Users/File.txt"  <span class="cmd"># Becomes C:\Users\File.txt on Windows</span></pre>
+          <h3>Flag Preservation</h3>
+          <p>Flags are not normalized:</p>
+          <ul>
+            <li><code>/?</code> (Windows help) remains <code>/?</code></li>
+            <li><code>-v</code> remains <code>-v</code></li>
+            <li><code>--help</code> remains <code>--help</code></li>
+          </ul>
+          <h3>Windows Shell Built-ins</h3>
+          <p>On Windows, shell built-ins (like <code>echo</code>, <code>dir</code>) are automatically executed through <code>cmd.exe</code> when not found in PATH.</p>
+          </div>
+          <div class="doc-page" data-page="7" id="page-7">
+          <h2 id="advanced">Advanced Features</h2>
+          <h3 id="linea-app">Linea App</h3>
+          <p>Create structured application directories with workflows and scripts:</p>
+          <pre class="code-block">linea app create my-app</pre>
+          <p>This creates a directory structure:</p>
+          <pre class="code-block">my-app/
+├─ .linea/workflows/    <span class="cmd"># Workflow YAML files (executable as commands)</span>
+├─ scripts/             <span class="cmd"># Lineash scripts (.lnsh files)</span>
+└─ README.md</pre>
+          <p><strong>Usage:</strong></p>
+          <pre class="code-block"><span class="cmd"># Create a new Linea App</span>
+linea app create my-app
+
+<span class="cmd"># Navigate to the app</span>
+cd my-app
+
+<span class="cmd"># Run workflows directly</span>
+linea run .linea/workflows/create-vm.yml -s/--set name="my-vm"
+
+<span class="cmd"># Or use lineash scripts</span>
+lineash scripts/deploy.lnsh</pre>
+          <p><strong>Benefits:</strong></p>
+          <ul>
+            <li>Organize workflows in a structured directory</li>
+            <li>Execute workflows as commands from scripts</li>
+            <li>Share app configurations with teams</li>
+            <li>Version control entire app structures</li>
+          </ul>
+
+          <h3 id="lineash">Lineash Scripts</h3>
+          <p>Execute bash-like scripts that can run Linea workflows as first-class commands:</p>
+          <pre class="code-block">lineash scripts/deploy.lnsh [args...]</pre>
+          <p><strong>Features:</strong></p>
+          <ul>
+            <li><strong>Friendly Syntax:</strong> Simplified conditionals and loops with <code>end</code> keyword</li>
+            <li><strong>Variables:</strong> <code>VAR="value"</code> and <code>$VAR</code> substitution</li>
+            <li><strong>Positional Parameters:</strong> <code>$1</code>, <code>$2</code>, etc. from command-line arguments</li>
+            <li><strong>Arithmetic Expressions:</strong> <code>$((expression))</code> for calculations</li>
+            <li><strong>Conditionals:</strong> <code>if condition ... else ... end</code> (also supports <code>if/then/else/fi</code>)</li>
+            <li><strong>Loops:</strong> <code>for VAR in list ... end</code> and <code>while condition ... end</code></li>
+            <li><strong>Comparison Operators:</strong> <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code></li>
+            <li><strong>Workflow Commands:</strong> Workflows in <code>.linea/workflows/</code> become executable commands</li>
+            <li><strong>System Commands:</strong> Unknown commands forwarded to system shell</li>
+            <li><strong>No Shebang Required:</strong> Scripts can run without <code>#!/bin/lineash</code></li>
+          </ul>
+          <p><strong>Friendly Syntax Example:</strong></p>
+          <pre class="code-block"><span class="cmd"># No shebang required!</span>
+VM_NAME="my-vm"
+VM_OS="alpine"
+
+echo "Starting deployment..."
+
+<span class="cmd"># Friendly conditional syntax</span>
+if $VM_OS == "alpine"
+    echo "Using Alpine Linux"
+    create-vm -s name=$VM_NAME
+else
+    echo "Using different OS"
+end
+
+<span class="cmd"># Friendly for loop</span>
+for env in dev staging prod
+    echo "Deploying to $env..."
+    deploy -s environment=$env
+end
+
+<span class="cmd"># While loop with arithmetic</span>
+counter=1
+while $counter <= 3
+    echo "Iteration $counter"
+    counter=$((counter + 1))
+end
+
+echo "Deployment complete!"</pre>
+          <p><strong>How It Works:</strong></p>
+          <ol>
+            <li>Lineash scans <code>.linea/workflows/</code> for available workflows</li>
+            <li>Workflows become executable commands in scripts</li>
+            <li>Unknown commands are forwarded to the system shell</li>
+            <li>Variables, conditionals, and loops work with friendly syntax</li>
+            <li>Positional parameters (<code>$1</code>, <code>$2</code>, etc.) are available from command-line arguments</li>
+            <li>Arithmetic expressions are evaluated before variable substitution</li>
+          </ol>
+          </div>
+          <div class="doc-page" data-page="8" id="page-8">
+          <h2 id="examples">Examples</h2>
+          <h3>Simple Command</h3>
+          <pre class="code-block"><span class="arg"># simple.yml</span>
+command: echo
+args:
+  - "Hello, Linea!"</pre>
+          <pre class="code-block">linea run simple.yml</pre>
+          <h3>Command with Subcommand</h3>
+          <pre class="code-block"><span class="arg"># docker-ps.yml</span>
+command: docker
+subcommand: ps
+args:
+  - -a</pre>
+          <pre class="code-block">linea run docker-ps.yml</pre>
+          <h3>Using Variables</h3>
+          <p>With <code>{variable}</code> syntax (protected, not overridable):</p>
+          <pre class="code-block"><span class="arg"># greet.yml</span>
+command: echo
+args:
+  - "Hello, {name}!"
+variables:
+  name: "World"</pre>
+          <pre class="code-block">linea run greet.yml
+<span class="cmd"># Output: Hello, World!</span>
+
+<span class="cmd"># {name} cannot be overridden - always uses "World"</span>
+linea run greet.yml -s/--set name="John"
+<span class="cmd"># Output: Hello, World!</span></pre>
+          <p>With <code>$variable</code> syntax (overridable):</p>
+          <pre class="code-block"><span class="arg"># greet.yml</span>
+command: echo
+args:
+  - "Hello, $name!"
+variables:
+  name: "World"</pre>
+          <pre class="code-block">linea run greet.yml
+<span class="cmd"># Output: Hello, World!</span>
+
+<span class="cmd"># $name can be overridden</span>
+linea run greet.yml -s/--set name="John"
+<span class="cmd"># Output: Hello, John!</span></pre>
+          <h3>Complex Example</h3>
+          <pre class="code-block"><span class="arg"># build.yml</span>
+command: docker
+subcommand: build
+args:
+  - -t
+  - "{image_name}:{tag}"
+  - -f
+  - "{dockerfile}"
+  - "{context}"
+variables:
+  image_name: "myapp"
+  tag: "latest"
+  dockerfile: "./Dockerfile"
+  context: "."</pre>
+          <pre class="code-block">linea run build.yml -s/--set tag="v1.0.0"</pre>
+          </div>
+          <div class="doc-page" data-page="9" id="page-9">
+          <h2 id="troubleshooting">Troubleshooting</h2>
+          <h3>Common Issues</h3>
+          <h4>"executable file not found in %PATH%"</h4>
+          <p><strong>Problem:</strong> Command not found on Windows.</p>
+          <p><strong>Solution:</strong> Linea automatically handles Windows shell built-ins. For other commands, ensure they're in your PATH or use full paths.</p>
+          <h4>"undefined variables: variable"</h4>
+          <p><strong>Problem:</strong> Variable referenced but not defined.</p>
+          <p><strong>Solution:</strong></p>
+          <ul>
+            <li>Define the variable in the YAML <code>variables</code> section, or</li>
+            <li>Provide it via <code>-s/--set</code> flag: <code>-s/--set variable="value"</code></li>
+          </ul>
+          <h4>"failed to parse YAML file"</h4>
+          <p><strong>Problem:</strong> Invalid YAML syntax.</p>
+          <p><strong>Solution:</strong></p>
+          <ul>
+            <li>Check YAML syntax (indentation, quotes, etc.)</li>
+            <li>Validate YAML with an online validator</li>
+            <li>Ensure <code>command</code> field is present</li>
+          </ul>
+          <h4>Path Issues on Windows</h4>
+          <p><strong>Problem:</strong> Paths not working correctly.</p>
+          <p><strong>Solution:</strong> Linea automatically normalizes paths. Use forward slashes in YAML; they'll be converted on Windows.</p>
+          <h3>Getting Help</h3>
+          <ul>
+            <li>Check the <a href="https://github.com/marcuwynu23/linea/blob/main/README.md">README.md</a> for quick reference</li>
+            <li>Review <a href="https://github.com/marcuwynu23/linea/blob/main/FEATURES.md">FEATURES.md</a> for feature details</li>
+            <li>See <a href="https://github.com/marcuwynu23/linea/tree/main/examples">examples/</a> directory for example YAML files</li>
+            <li>Open an issue on <a href="https://github.com/marcuwynu23/linea/issues">GitHub</a> for bugs or feature requests</li>
+          </ul>
+          </div>
+          <div class="doc-page" data-page="10" id="page-10">
+          <h2 id="best-practices">Best Practices</h2>
+          <ol>
+            <li><strong>Use descriptive variable names:</strong> <code>image_name</code> instead of <code>img</code></li>
+            <li><strong>Document complex commands:</strong> Add comments in YAML files</li>
+            <li><strong>Version control YAML files:</strong> Track command configurations</li>
+            <li><strong>Test before running:</strong> Use <code>linea test</code> to verify commands</li>
+            <li><strong>Use variables for paths:</strong> Makes commands portable across systems</li>
+            <li><strong>Validate early:</strong> Check for undefined variables before execution</li>
+          </ol>
+          </div>
+          <div class="doc-page" data-page="11" id="page-11">
+          <h2 id="advanced-usage">Advanced Usage</h2>
+          <p>For detailed information about Linea App and Lineash scripts, see the <a href="#advanced">Advanced Features</a> section above.</p>
+          <h3>Nested Variables</h3>
+          <p>Variables can reference other variables:</p>
+          <pre class="code-block">variables:
+  base_path: "/home/user"
+  config_path: "{base_path}/config"</pre>
+          <h3>Multiple Variable Sources</h3>
+          <p>Combine YAML and command-line variables:</p>
+          <pre class="code-block"><span class="arg"># config.yml</span>
+variables:
+  env: "development"</pre>
+          <pre class="code-block">linea run config.yml -s/--set env="production"</pre>
+          <p>The command-line value (<code>production</code>) overrides the YAML value (<code>development</code>).</p>
+          </div>
+
+          <p style="margin-top: 2rem;">
+            <a href="https://github.com/marcuwynu23/linea/blob/main/DOCUMENTATION.md" target="_blank" rel="noopener">View DOCUMENTATION.md on GitHub</a>
+          </p>
+
+        <nav class="doc-pagination" aria-label="Documentation pagination">
+          <a href="#" id="doc-prev" class="doc-page-btn doc-page-prev">←</a>
+          <div class="doc-page-numbers" id="doc-page-numbers"></div>
+          <a href="#" id="doc-next" class="doc-page-btn doc-page-next">→</a>
+        </nav>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    (function() {
+      var sectionIds = ['installation', 'quick-start', 'yaml-format', 'command-reference', 'variables', 'cross-platform', 'advanced', 'examples', 'troubleshooting', 'best-practices', 'advanced-usage'];
+      var total = sectionIds.length;
+      var container = document.getElementById('doc-page-numbers');
+      var prevBtn = document.getElementById('doc-prev');
+      var nextBtn = document.getElementById('doc-next');
+      var pages = document.querySelectorAll('.doc-page');
+
+      for (var i = 0; i < total; i++) {
+        var a = document.createElement('a');
+        a.href = '#' + sectionIds[i];
+        a.className = 'doc-page-num';
+        a.setAttribute('data-index', i);
+        a.textContent = i + 1;
+        container.appendChild(a);
+      }
+      var pageLinks = container.querySelectorAll('.doc-page-num');
+
+      function showPage(index) {
+        index = Math.max(0, Math.min(index, total - 1));
+        pages.forEach(function(p) { p.classList.remove('active'); });
+        var pageEl = document.getElementById('page-' + (index + 1));
+        if (pageEl) pageEl.classList.add('active');
+        pageLinks.forEach(function(link, i) { link.classList.toggle('active', i === index); });
+        prevBtn.href = index > 0 ? '#' + sectionIds[index - 1] : '#';
+        prevBtn.classList.toggle('disabled', index === 0);
+        nextBtn.href = index < total - 1 ? '#' + sectionIds[index + 1] : '#';
+        nextBtn.classList.toggle('disabled', index === total - 1);
+        location.hash = sectionIds[index];
+      }
+
+      function hashToIndex() {
+        var hash = (location.hash || '').replace(/^#/, '');
+        for (var i = 0; i < sectionIds.length; i++) {
+          if (sectionIds[i] === hash) return i;
+        }
+        return 0;
+      }
+
+      container.addEventListener('click', function(e) {
+        var a = e.target.closest('.doc-page-num');
+        if (!a || a.classList.contains('active')) return;
+        e.preventDefault();
+        showPage(parseInt(a.getAttribute('data-index'), 10));
+      });
+      prevBtn.addEventListener('click', function(e) {
+        if (prevBtn.classList.contains('disabled')) { e.preventDefault(); return; }
+        e.preventDefault();
+        showPage(hashToIndex() - 1);
+      });
+      nextBtn.addEventListener('click', function(e) {
+        if (nextBtn.classList.contains('disabled')) { e.preventDefault(); return; }
+        e.preventDefault();
+        showPage(hashToIndex() + 1);
+      });
+      window.addEventListener('hashchange', function() { showPage(hashToIndex()); });
+      window.addEventListener('load', function() { showPage(hashToIndex()); });
+    })();
+  </script>
+
+  <footer class="site-footer">
+    <div class="container-fluid">
+      <span>Linea — Cross-Platform YAML-Driven Command Execution</span>
+      <div class="footer-links">
+        <a href="https://github.com/marcuwynu23/linea">GitHub</a>
+        <a href="https://github.com/marcuwynu23/linea/issues">Issues</a>
+        <a href="https://github.com/marcuwynu23/linea/blob/main/LICENSE">License (MIT)</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
