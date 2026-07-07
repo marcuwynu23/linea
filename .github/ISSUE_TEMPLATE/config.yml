@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion
+    url: https://github.com/marcuwynu23/linea/discussions
+    about: Questions and ideas
+  - name: Documentation
+    url: https://github.com/marcuwynu23/linea/blob/main/USER-GUIDE.md
+    about: Read the user guide before opening an issue
