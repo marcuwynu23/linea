@@ -1,379 +1,311 @@
 <div align="center">
 
-  <h1>Linea - Commandline Workflow Tool</h1>
+# Linea
 
-  <p><strong>Cross-Platform YAML-Driven Command Execution Tool</strong></p>
+<p>
+  <img src="https://img.shields.io/github/v/release/marcuwynu23/linea?include_prereleases&style=flat-square" alt="Release"/>
+  <img src="https://img.shields.io/github/go-mod/go-version/marcuwynu23/linea?style=flat-square" alt="Go Version"/>
+  <img src="https://img.shields.io/github/stars/marcuwynu23/linea?style=flat-square" alt="GitHub Stars"/>
+  <img src="https://img.shields.io/github/license/marcuwynu23/linea?style=flat-square" alt="License"/>
+  <img src="https://img.shields.io/github/actions/workflow/status/marcuwynu23/linea/.github/workflows/test.yml?branch=main&style=flat-square" alt="CI"/>
+  <img src="https://codecov.io/gh/marcuwynu23/linea/branch/main/graph/badge.svg?style=flat-square" alt="Codecov"/>
+</p>
 
-  <p>
-    <img src="https://img.shields.io/github/v/release/marcuwynu23/linea?include_prereleases&style=flat-square" alt="Release"/>
-    <img src="https://img.shields.io/github/go-mod/go-version/marcuwynu23/linea?style=flat-square" alt="Go Version"/>
-    <img src="https://img.shields.io/github/stars/marcuwynu23/linea?style=flat-square" alt="GitHub Stars"/>
-    <img src="https://img.shields.io/github/forks/marcuwynu23/linea?style=flat-square" alt="GitHub Forks"/>
-    <img src="https://img.shields.io/github/license/marcuwynu23/linea?style=flat-square" alt="License"/>
-    <img src="https://img.shields.io/github/issues/marcuwynu23/linea?style=flat-square" alt="GitHub Issues"/>
-  </p>
+**Cross-Platform YAML-Driven Command Execution Tool.**  
+Define, share, and run complex command-line workflows from simple YAML files.
+
+➡️ **[Read the full user guide →](USER-GUIDE.md)**
 
 </div>
 
-Linea is a cross-platform CLI tool that organizes commands into workflows using YAML. It makes defining and managing complex command-line tasks simple and consistent across different environments.
+## Table of Contents
 
-Beyond organization, Linea can execute these workflows directly, enabling developers and sysadmins to streamline their operations and run tasks reliably across Windows, Linux, and macOS.
+- [What Is Linea?](#what-is-linea)
+- [Use Cases](#use-cases)
+- [Benefits for Developers](#benefits-for-developers)
+- [Advantages Over Other Tools](#advantages-over-other-tools)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [CLI Reference](#cli-reference)
+- [Configuration](#configuration)
+- [Example Output](#example-output)
+- [CI/CD Integration](#cicd-integration)
+- [Development](#development)
+- [Architecture](#architecture)
+- [Contributing](CONTRIBUTING.md)
+- [User Guide](USER-GUIDE.md)
+- [License](#license)
 
+---
 
-## Why Linea?
+## What Is Linea?
 
-### The Problem with Traditional Scripting
+**Linea** is a cross-platform CLI tool that organizes commands into workflows using YAML. It makes defining, sharing, and managing complex command-line tasks simple and consistent across Windows, Linux, and macOS.
 
-Traditional shell scripts (Bash, PowerShell, etc.) have limitations:
-- **Platform-specific**: Different syntax for Windows vs Unix
-- **Hard to version control**: Complex scripts are difficult to review and maintain
-- **No validation**: Errors only surface at runtime
-- **Limited reusability**: Hard to parameterize and share
-- **Poor documentation**: Command intent is buried in code
+### What It Does
 
-### The Linea Solution
+- **Define** — Declare commands, subcommands, and arguments in portable YAML files
+- **Execute** — Run workflows directly with `linea run <file>`
+- **Test** — Dry-run commands with `linea test` to preview before execution
+- **Parameterize** — Use `{variable}` and `$variable` placeholders with built-in validation
+- **Override** — Pass variables at runtime via `-s/--set` without modifying files
+- **Structure** — Create Linea Apps with `linea app create` for organized workflow directories
+- **Script** — Write bash-like `.lnsh` scripts that invoke workflows as first-class commands
 
-Linea provides a **declarative, cross-platform approach** to command execution:
+### Why Use It?
 
-✅ **Universal YAML format** - Works identically on Windows, Linux, and macOS  
-✅ **Version control friendly** - Easy to review, diff, and merge  
-✅ **Built-in validation** - Catches errors before execution  
-✅ **Parameterized execution** - Variables and overrides without code changes  
-✅ **Self-documenting** - YAML structure makes intent clear  
-✅ **Team collaboration** - Share command configurations effortlessly  
+| Problem | How Linea Solves It |
+|---|---|
+| Shell scripts break across OSes | **Single YAML works on Windows, Linux, and macOS** — paths normalize automatically |
+| Scripts are hard to review in PRs | **YAML diffs cleanly** — intent is obvious |
+| Errors surface only at runtime | **Pre-execution validation** catches missing variables and bad syntax |
+| Commands are duplicated across projects | **Template-based workflows** with variables enable reuse |
+| Onboarding new devs is slow | **Self-documenting YAML** makes command intent clear without comments |
+| CI pipelines need the same commands as local dev | **Same YAML file works everywhere** — local, CI, across teams |
 
-### Key Advantages Over Scripting
+### The Philosophy
 
-| Feature | Traditional Scripts | Linea |
-|---------|---------------------|------------|
-| **Cross-platform** | Requires separate scripts | Single YAML works everywhere |
-| **Version control** | Hard to review changes | Easy to diff and merge |
-| **Validation** | Runtime errors only | Pre-execution validation |
-| **Documentation** | Comments in code | Self-documenting structure |
-| **Reusability** | Copy-paste or functions | Template-based with variables |
-| **Testing** | Manual execution | Built-in dry-run mode |
-| **Maintenance** | Code complexity grows | Simple YAML structure |
+1. **Declarative over imperative.** Say *what* to run, not *how* to run it.
+2. **Your process stays yours.** No lock-in — your YAML files are plain text under version control.
+3. **Portable by default.** One definition runs identically on every major OS.
 
-## Features
+## Use Cases
 
-- **YAML-Driven Execution**: Commands, subcommands, and arguments are defined in YAML files
-- **Cross-Platform Support**: Automatically detects OS and converts paths to proper separators
-- **Variable Substitution**: Use `{variable}` or `$variable` placeholders with validation
-- **Command-Line Overrides**: Pass variables at runtime without modifying files
-- **Linea App**: Create structured app directories with workflows and scripts
-- **Lineash Scripts**: Bash-like script interpreter that executes Linea workflows as commands
-- **Dry-Run Mode**: Test commands without executing them using the `test` subcommand
-- **Help Command**: Display information about commands defined in YAML files
-- **Variable Validation**: Ensures all required variables are defined before execution
+| Scenario | How Linea Helps |
+|---|---|
+| **DevOps & Deployment** | Define deployment commands in version-controlled YAML; parameterize per environment |
+| **Development Workflows** | Standardize build, test, and code-gen commands across projects |
+| **System Administration** | Cross-platform scripts that work on Windows, Linux, and macOS without modification |
+| **CI/CD Pipelines** | Reuse the same YAML workflows locally and in GitHub Actions, GitLab CI, etc. |
+| **Team Onboarding** | New members see available workflows and their intent at a glance |
+| **Documentation & Training** | Self-documenting commands replace tribal knowledge and README drift |
+
+## Benefits for Developers
+
+- **Write once, run anywhere** — YAML files are fully cross-platform
+- **Pre-flight validation** — `linea test` catches errors before they happen
+- **Zero-config variables** — `{var}` for protected defaults, `$var` for runtime overrides
+- **Structured apps** — `linea app create` scaffolds workflow directories with scripts
+- **Lineash scripting** — Bash-like interpreter that treats workflows as native commands
+- **Git-friendly** — YAML diffs are readable; merges rarely conflict
+- **Self-documenting** — The YAML structure IS the documentation
+- **No runtime deps** — Single static binary; no Python, Node, or Java required
+- **Dry-run mode** — Preview every command without executing it
+- **Verbose mode** — See the full constructed command on execution
+
+## Advantages Over Other Tools
+
+| Aspect | Linea | Shell Scripts | Ansible | Makefile | Handwritten |
+|---|---|---|---|---|---|
+| **Setup time** | ~10 seconds | Immediate | Hours | Minutes | None |
+| **Cross-platform** | Native | Fragile per-OS scripts | Via SSH/agents | Limited | N/A |
+| **Validation** | Built-in pre-exec | Runtime only | Playbook syntax check | None | None |
+| **Diff/Review** | Clean YAML diffs | Opaque diffs | YAML but complex | Tab-heavy | N/A |
+| **Variables** | `{}` / `$` syntax, CLI override | Env vars / args | Vars / extra-vars | `$(...)` | N/A |
+| **Dry-run** | `linea test` | Manual echo | `--check` | `-n` | N/A |
+| **CLI complexity** | Minimal (5 subcommands) | Full language | ~50 modules | Targets/rules | N/A |
+| **Binary size** | ~10 MB | None | ~500 MB | None | N/A |
+| **License** | MIT | Varies | GPL-3.0 | GPL-3.0 | N/A |
+| **Learning curve** | Minutes | Moderate | Steep | Moderate | N/A |
+| **Scripting** | Lineash (.lnsh) | Native shell | Playbooks | Recipes | N/A |
+| **CI integration** | Drop-in YAML | Script per CI | AWX/Tower | Pre-installed | Manual |
 
 ## Installation
 
-```bash
-go build -o bin/linea
-```
-
-On Windows:
-```bash
-go build -o bin/linea.exe
-```
-
-Or install directly:
+### From source (Go 1.18+)
 
 ```bash
-go install
+git clone https://github.com/marcuwynu23/linea.git
+cd linea
+go build -o bin/linea .
+
+# Optional: build lineash script interpreter
+go build -o bin/lineash ./lineash
 ```
 
-## Usage
+### On Windows
+
+```powershell
+go build -o bin\linea.exe .
+go build -o bin\lineash.exe .\lineash
+```
+
+### Via `go install`
 
 ```bash
-linea <subcommand> <yaml-file>
+go install github.com/marcuwynu23/linea@latest
 ```
 
-### Subcommands
+### Binary downloads
 
-- `run` - Execute the command defined in the YAML file
-- `test` - Dry-run the command (print without executing)
-- `help` - Display information about the command
-- `init` - Initialize a new workflow YAML file with template and documentation
-- `app create <name>` - Create a Linea App structure with workflows and scripts
+Pre-built binaries for Linux (amd64, 386, arm64), Windows (amd64, 386, arm64), and macOS (amd64, arm64) are available on the [Releases page](https://github.com/marcuwynu23/linea/releases).
 
-## Advanced Features
-
-### Linea App
-
-Create structured application directories with workflows and scripts:
+### Verify
 
 ```bash
-linea app create my-app
+linea --help
+lineash --help
 ```
 
-This creates:
-```
-my-app/
-├─ .linea/workflows/    # Workflow YAML files (executable as commands)
-├─ scripts/             # Lineash scripts (.lnsh files)
-└─ README.md
-```
-
-**Benefits:**
-- Organize workflows in a structured directory
-- Execute workflows as commands from scripts
-- Share app configurations with teams
-- Version control entire app structures
-
-### Lineash Scripts
-
-Execute bash-like scripts that can run Linea workflows as first-class commands:
+## Quick Start
 
 ```bash
-lineash scripts/deploy.lnsh [args...]
-```
-
-**Features:**
-- **Friendly Syntax**: Simplified conditionals and loops with `end` keyword
-- **Variables**: `VAR="value"` and `$VAR` substitution
-- **Positional Parameters**: `$1`, `$2`, etc. from command-line arguments
-- **Arithmetic Expressions**: `$((expression))` for calculations
-- **Conditionals**: `if condition ... else ... end` with operators `==`, `!=`, `<`, `>`, `<=`, `>=`
-- **Loops**: `for VAR in list ... end` and `while condition ... end`
-- **Workflow Commands**: Workflows in `.linea/workflows/` become executable commands
-- **System Commands**: Unknown commands forwarded to system shell
-- **No Shebang Required**: Scripts can run without `#!/bin/lineash` at the top
-
-**Example Script (Friendly Syntax):**
-```bash
-# No shebang required!
-VM_NAME="my-vm"
-VM_OS="alpine"
-
-echo "Starting deployment..."
-
-# Friendly conditional
-if $VM_OS == "alpine"
-    echo "Using Alpine Linux"
-    create-vm -s name=$VM_NAME
-else
-    echo "Using different OS"
-end
-
-# Friendly for loop
-for env in dev staging prod
-    echo "Deploying to $env..."
-    deploy -s environment=$env
-end
-
-# While loop with arithmetic
-counter=1
-while $counter <= 3
-    echo "Iteration $counter"
-    counter=$((counter + 1))
-end
-```
-
-**Note:** Traditional bash syntax (`if/then/else/fi`, `for/do/done`) is still supported for backward compatibility.
-
-## Example YAML Files
-
-### Simple Echo Command
-
-```yaml
-# examples/echo-simple.yml
+# Create a simple workflow
+cat > hello.yml <<EOF
 command: echo
 args:
   - "Hello, Linea!"
-```
+EOF
 
-Run it:
-```bash
-linea run examples/echo-simple.yml
-```
+# Dry-run (preview without executing)
+linea test hello.yml
 
-### Command with Variables
+# Execute
+linea run hello.yml
 
-```yaml
-# examples/echo-variables.yml
-command: echo
-args:
-  - "Message: {message}"
-  - "User: {user}"
-variables:
-  message: "Welcome to Linea CLI"
-  user: "Developer"
-```
-
-### Command with Command-Line Variables (-s/--set)
-
-You can override or provide variables at runtime using the `-s/--set` flag. **Note:** Only `$variable` syntax can be overridden; `{variable}` syntax always uses YAML defaults.
-
-```yaml
-# examples/greet.yml
+# Use variables
+cat > greet.yml <<EOF
 command: echo
 args:
   - "Hello, $name! Welcome to $platform."
 variables:
   platform: "Linea CLI"
+EOF
+
+linea run greet.yml -s name="Developer"
 ```
 
-Run with command-line variables:
+## CLI Reference
+
+### `linea run <file>`
+
+Execute the command defined in a YAML file.
+
+| Flag | Default | Description |
+|---|---|---|
+| `-v, --verbose` | `false` | Show the full command before executing |
+| `-s, --set <var>=<value>` | — | Provide or override variable values (repeatable) |
+
 ```bash
-linea run examples/greet.yml -s/--set name="John"
+linea run config.yml
+linea run -v config.yml
+linea run config.yml -s name="John" -s env=production
 ```
 
-Output:
-```
-Hello, John! Welcome to Linea CLI.
-```
+### `linea test <file>`
 
-You can also override YAML variables:
+Dry-run a command — prints what would be executed without running it.
+
+| Flag | Default | Description |
+|---|---|---|
+| `-s, --set <var>=<value>` | — | Provide variable values for the dry-run |
+
 ```bash
-linea run examples/greet.yml -s/--set name="John" -s/--set platform="Commandline Workflow"
+linea test config.yml
 ```
 
-Output:
-```
-Hello, John! Welcome to Commandline Workflow.
-```
+### `linea help <file>`
 
+Display the full constructed command and all variable values for a YAML file.
 
-### Docker Command
-
-```yaml
-# examples/docker-ps.yml
-command: docker
-subcommand: ps
-args:
-  - -a
+```bash
+linea help config.yml
 ```
 
-### List Directory
+### `linea init <file>`
 
-```yaml
-# examples/ls-directory.yml
-command: ls
-args:
-  - -l
-  - -a
-  - "{directory}"
-variables:
-  directory: "."
-```
-
-## YAML File Structure
-
-### Single Command
-
-```yaml
-command: <main-command>
-subcommand: <optional-subcommand>
-args:
-  - <arg1>
-  - <arg2>
-  - <...>
-variables:
-  <var1>: <value1>
-  <var2>: <value2>
-```
-
-**Variable Syntax Notes:**
-- Use `{variable}` for protected defaults that cannot be overridden
-- Use `$variable` for values that can be overridden via `-s/--set`
-
-### Multiple Commands
-
-Separate multiple commands with `---`:
-
-```yaml
-command: <main-command>
-args:
-  - <arg1>
-variables:
-  <var1>: <value1>
----
-command: <another-command>
-args:
-  - <arg2>
-variables:
-  <var2>: <value2>
----
-# More commands...
-```
-
-## Examples
-
-### Initialize a New Workflow
-
-Create a new workflow file with a template:
+Scaffold a new workflow YAML file with template structure, documentation comments, and variable examples.
 
 ```bash
 linea init workflow.yml
 ```
 
-This creates a new file with:
-- Template structure
-- Documentation comments
-- Example usage
-- Variable examples
+### `linea app create <name>`
 
-Output:
-```
-✅ Created workflow file: workflow.yml
+Create a structured Linea App directory with workflow and script folders.
 
-You can now:
-  • Edit the file to customize your workflow
-  • Test it: linea test workflow.yml
-  • Run it: linea run workflow.yml
-```
-
-### Dry-Run a Command
+| Flag | Default | Description |
+|---|---|---|
+| `-t, --template` | `default` | App template to use |
 
 ```bash
-linea test examples/docker-ps.yml
+linea app create my-app
 ```
 
-Output:
+Creates:
 ```
-Dry run - would execute:
-docker ps -a
+my-app/
+├── .linea/workflows/   # Workflow YAML files
+├── scripts/            # Lineash scripts (.lnsh)
+└── README.md
 ```
 
-### Get Help for a Command
+### `lineash <script> [args...]`
+
+Execute a Lineash script — a bash-like interpreter that treats `.linea/workflows/` workflows as native commands.
 
 ```bash
-linea help examples/echo-variables.yml
+lineash scripts/deploy.lnsh my-app production
 ```
 
-### Multiple Commands in One File (Advanced)
+## Configuration
 
-You can define multiple commands in a single YAML file by separating them with `---`:
+### Single-command YAML
 
 ```yaml
-# examples/multi.yml
-command: echo
+command: <executable>
+subcommand: <optional-subcommand>
 args:
-  - "First command: {message}"
+  - <argument>
 variables:
-  message: "Hello from first command"
----
-command: echo
-args:
-  - "Second command: {message}"
-variables:
-  message: "Hello from second command"
----
-command: echo
-args:
-  - "Third command: {message}"
-variables:
-  message: "Hello from third command"
+  <key>: <value>
 ```
 
-Run all commands sequentially:
+| Field | Required | Description |
+|---|---|---|
+| `command` | Yes | The executable to run |
+| `subcommand` | No | Subcommand passed to the executable |
+| `args` | No | List of arguments (supports variable substitution) |
+| `variables` | No | Key-value pairs for `{var}` / `$var` substitution |
+
+### Multi-command YAML
+
+Separate commands with `---`:
+
+```yaml
+command: echo
+args:
+  - "Step 1"
+---
+command: echo
+args:
+  - "Step 2"
+```
+
+### Variable syntax
+
+| Syntax | Overridable via `-s/--set` | Use case |
+|---|---|---|
+| `{variable}` | No | Protected defaults — always uses YAML value |
+| `$variable` | Yes | Runtime overrides from CLI or CI |
+
+### Configuration precedence
+
+```
+CLI flag (-s/--set) > YAML variables section > defaults (none)
+```
+
+## Example Output
+
 ```bash
-linea run -v examples/multi.yml
-```
+$ linea test examples/docker-ps.yml
+Dry run - would execute:
+docker ps -a
 
-Output:
-```
+$ linea run examples/greet.yml -s name="John"
+Hello, John! Welcome to Linea CLI.
+
+$ linea run -v examples/multi.yml
 Found 3 commands in YAML file
 
 [1/3] Executing: echo First command: Hello from first command
@@ -386,173 +318,98 @@ Second command: Hello from second command
 Third command: Hello from third command
 ```
 
-Test multiple commands:
-```bash
-linea test examples/multi.yml
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+name: Deploy
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+      - run: go build -o bin/linea .
+      - run: ./bin/linea run deploy.yml -s env=production
 ```
 
-Get help for all commands:
-```bash
-linea help examples/multi.yml
+### GitLab CI
+
+```yaml
+deploy:
+  image: golang:1.23
+  script:
+    - go build -o bin/linea .
+    - ./bin/linea run deploy.yml -s env=production
 ```
 
-**Use Cases:**
-- Execute a sequence of related commands
-- Build workflows with multiple steps
-- Run commands in a specific order
-- Share command sequences with your team
+## Development
 
-## Running Tests
+### Prerequisites
+
+| Tool | Version | Purpose |
+|---|---|---|
+| Go | 1.18+ | Compiler |
+| Git | Any | Version control |
+
+### Commands
 
 ```bash
-go test ./tests/...
+go build -o bin/linea .          # Build linea binary
+go build -o bin/lineash ./lineash # Build lineash binary
+go test ./tests/...              # Run all tests
+go test -cover ./tests/...       # Run with coverage
 ```
 
-## Project Structure
+### Project structure
 
 ```
 linea/
-  main.go              # CLI entry point
-  cmd/                 # Subcommands (run, test, help)
-  internal/            # Core logic (parser, executor, utils)
-  examples/            # Example YAML files
-  tests/               # Test files
-  bin/                 # Compiled executable (gitignored)
-  go.mod               # Go module definition
-  README.md            # This file
+├── main.go              # CLI entry point
+├── cmd/                 # Subcommand implementations
+│   ├── run.go
+│   ├── test.go
+│   ├── help.go
+│   ├── init.go
+│   ├── app.go
+│   └── lineash.go
+├── internal/            # Core logic (not exported)
+│   ├── parser.go        # YAML parsing
+│   ├── executor.go      # Command execution
+│   ├── lineash.go       # Script interpreter
+│   ├── types.go         # Type definitions
+│   └── utils.go         # Utilities (path normalization, etc.)
+├── lineash/             # Lineash script interpreter entry point
+│   └── main.go
+├── examples/            # Example YAML workflows
+├── tests/               # Test suite
+├── docs/                # Cloudflare Pages documentation site
+├── .github/workflows/   # CI/CD workflows
+└── bin/                 # Build output (gitignored)
 ```
 
-## Use Cases
+## Architecture
 
-### DevOps & Infrastructure
-- **Deployment automation**: Define deployment commands in version-controlled YAML files
-- **Multi-environment management**: Use variables to adapt commands for dev/staging/prod
-- **Team standardization**: Share consistent command configurations across team members
-- **CI/CD integration**: Parameterize pipeline commands for different environments
-
-### Development Workflows
-- **Build processes**: Standardize build commands across projects
-- **Database migrations**: Version control database command sequences
-- **Testing automation**: Define test execution commands declaratively
-- **Code generation**: Template-based code generation with variable substitution
-
-### System Administration
-- **Cross-platform scripts**: Single YAML file works on all operating systems
-- **Configuration management**: Document and version control system commands
-- **Backup automation**: Define backup procedures in YAML
-- **Monitoring setup**: Configure monitoring commands consistently
-
-### Documentation & Training
-- **Command libraries**: Build reusable command templates
-- **Onboarding**: New team members can understand commands from YAML structure
-- **Knowledge sharing**: Share complex command invocations easily
-- **Documentation**: Self-documenting command configurations
-
-## Documentation
-
-### [FEATURES.md](FEATURES.md)
-Complete feature documentation including:
-- **Core Features**: YAML-driven execution, cross-platform support, variable substitution
-- **Advanced Features**: Nested variables, path normalization, Windows shell support
-- **Use Cases**: DevOps automation, development workflows, system administration
-- **Roadmap**: Planned features and future enhancements
-
-### [DOCUMENTATION.md](DOCUMENTATION.md)
-Comprehensive user guide covering:
-- **Installation**: Building from source and installation methods
-- **Quick Start**: Get up and running in minutes
-- **YAML Format**: Complete reference for YAML file structure
-- **Command Reference**: Detailed documentation for `run`, `test`, and `help` commands
-- **Variables**: Variable syntax, sources, substitution, and validation
-- **Cross-Platform**: Path normalization, flag preservation, OS-specific handling
-- **Examples**: Real-world examples and use cases
-- **Troubleshooting**: Common issues and solutions
-
-### [CONTRIBUTING.md](CONTRIBUTING.md)
-Guidelines for contributing to Linea:
-- **Code of Conduct**: Community standards and expectations
-- **How to Contribute**: Reporting bugs, suggesting features, pull requests
-- **Development Setup**: Prerequisites and getting started
-- **Coding Guidelines**: Code style, project structure, testing requirements
-- **Commit Messages**: Format and conventions
-- **Review Process**: What to expect when submitting contributions
-
-### [GUIDELINES.md](GUIDELINES.md)
-Development standards and best practices:
-- **Code Style**: Go conventions, naming, error handling, comments
-- **Project Structure**: Directory organization and package layout
-- **Testing Guidelines**: Test structure, coverage, and best practices
-- **Code Review**: Checklist for pull requests
-- **Git Workflow**: Branch naming and commit message conventions
-- **Performance**: Optimization guidelines and considerations
-- **Security**: Best practices for secure code
-
-## Quick Comparison: Script vs Linea
-
-### Traditional Shell Script
-```bash
-#!/bin/bash
-# Hard to maintain, platform-specific
-if [[ "$OSTYPE" == "msys" ]]; then
-    docker build -t myapp:latest -f .\Dockerfile .
-else
-    docker build -t myapp:latest -f ./Dockerfile .
-fi
-```
-
-### Linea YAML
-```yaml
-# Simple, cross-platform, version-controlled
-command: docker
-subcommand: build
-args:
-  - -t
-  - "{image}:{tag}"
-  - -f
-  - "{dockerfile}"
-  - "{context}"
-variables:
-  image: "myapp"
-  tag: "latest"
-  dockerfile: "./Dockerfile"
-  context: "."
-```
-
-**Benefits:**
-- ✅ Works on Windows, Linux, macOS without modification
-- ✅ Easy to review in pull requests
-- ✅ Variables can be overridden: `linea run build.yml -s/--set tag="v1.0.0"`
-- ✅ Self-documenting structure
-- ✅ Built-in validation prevents errors
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
-
-**Quick Start:**
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass (`go test ./tests/...`)
-6. Submit a pull request
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for complete contribution guidelines, code style standards, and development setup instructions.
-
-## Support
-
-- **Issues:** Report bugs or request features on GitHub
-- **Discussions:** Ask questions and share ideas
-- **Funding:** Support the project via [PayPal](https://www.paypal.com/paypalme/wynumarcu23)
+- **`main.go`** dispatches subcommands (`run`, `test`, `help`, `init`, `app`) to handlers in `cmd/`
+- **`cmd/`** packages parse CLI flags, read YAML files, and delegate to `internal/`
+- **`internal/parser`** deserializes YAML into typed configs using `gopkg.in/yaml.v3`
+- **`internal/executor`** resolves variables (`{var}` / `$var`), normalizes paths per OS, and invokes the OS shell
+- **`internal/lineash`** implements a bash-like interpreter that resolves workflow names from `.linea/workflows/`
+- **Path normalization** converts `/` to `\` on Windows (and vice versa) while preserving flags like `/?`
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Thanks to all contributors who help improve Linea
-- Built with [Go](https://golang.org/)
-- YAML parsing powered by [gopkg.in/yaml.v3](https://github.com/go-yaml/yaml)
+MIT — see [LICENSE](LICENSE).
 
 ---
+
+<p align="center">
+  <a href="CONTRIBUTING.md">Contributing Guidelines</a> •
+  <a href="USER-GUIDE.md">User Guide</a> •
+  <a href="https://github.com/marcuwynu23/linea/issues">Issues</a> •
+  <a href="https://github.com/marcuwynu23/linea/discussions">Discussions</a>
+</p>
