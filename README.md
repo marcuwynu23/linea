@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/github/v/release/marcuwynu23/linea?include_prereleases&style=flat-square" alt="Release"/>
   <img src="https://img.shields.io/github/go-mod/go-version/marcuwynu23/linea?style=flat-square" alt="Go Version"/>
   <img src="https://img.shields.io/github/stars/marcuwynu23/linea?style=flat-square" alt="GitHub Stars"/>
-  <img src="https://img.shields.io/github/license/marcuwynu23/linea?style=flat-square" alt="License"/>
+  <img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square" alt="License"/>
   <img src="https://img.shields.io/github/actions/workflow/status/marcuwynu23/linea/.github/workflows/test.yml?branch=main&style=flat-square" alt="CI"/>
   <img src="https://codecov.io/gh/marcuwynu23/linea/branch/main/graph/badge.svg?style=flat-square" alt="Codecov"/>
 </p>
@@ -105,7 +105,7 @@ Define, share, and run complex command-line workflows from simple YAML files.
 | **Dry-run** | `linea test` | Manual echo | `--check` | `-n` | N/A |
 | **CLI complexity** | Minimal (5 subcommands) | Full language | ~50 modules | Targets/rules | N/A |
 | **Binary size** | ~10 MB | None | ~500 MB | None | N/A |
-| **License** | MIT | Varies | GPL-3.0 | GPL-3.0 | N/A |
+| **License** | Apache 2.0 | Varies | GPL-3.0 | GPL-3.0 | N/A |
 | **Learning curve** | Minutes | Moderate | Steep | Moderate | N/A |
 | **Scripting** | Lineash (.lnsh) | Native shell | Playbooks | Recipes | N/A |
 | **CI integration** | Drop-in YAML | Script per CI | AWX/Tower | Pre-installed | Manual |
@@ -403,7 +403,7 @@ linea/
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Apache 2.0 — see [LICENSE](LICENSE).
 
 ---
 
