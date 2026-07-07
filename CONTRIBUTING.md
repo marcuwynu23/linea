@@ -1,212 +1,302 @@
 # Contributing to Linea
 
-Thank you for your interest in contributing to Linea! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Linea! This guide covers everything you need to know to contribute effectively.
+
+## Table of Contents
+
+- [Code of Conduct](#code-of-conduct)
+- [Prerequisites](#prerequisites)
+- [Project Structure](#project-structure)
+- [Development Workflow](#development-workflow)
+- [Coding Standards](#coding-standards)
+- [Testing](#testing)
+- [Commit Conventions](#commit-conventions)
+- [PR Process](#pr-process)
+- [Release Process](#release-process)
+- [Questions](#questions)
+
+---
 
 ## Code of Conduct
 
-- Be respectful and inclusive
-- Welcome newcomers and help them learn
-- Focus on constructive feedback
-- Respect different viewpoints and experiences
+This project is governed by the [Contributor Covenant](CODE_OF_CONDUCT.md). By participating, you agree to uphold its standards. Report unacceptable behavior to the project maintainers.
 
-## How to Contribute
+## Prerequisites
 
-### Reporting Bugs
+| Tool | Version | Purpose |
+|---|---|---|
+| Go | 1.18+ | Compiler and toolchain |
+| Git | Any | Version control |
+| golangci-lint | Latest | Linting (optional, CI runs it) |
 
-If you find a bug, please open an issue with:
-
-1. **Clear title** describing the bug
-2. **Description** of the issue
-3. **Steps to reproduce** the bug
-4. **Expected behavior** vs **actual behavior**
-5. **Environment details:**
-   - OS and version
-   - Go version
-   - Linea version
-6. **Screenshots/logs** if applicable
-
-### Suggesting Features
-
-Feature suggestions are welcome! Please include:
-
-1. **Clear description** of the feature
-2. **Use case** - why is this feature needed?
-3. **Proposed implementation** (if you have ideas)
-4. **Examples** of how it would be used
-
-### Pull Requests
-
-1. **Fork the repository**
-2. **Create a feature branch:**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Make your changes**
-4. **Write/update tests** for your changes
-5. **Ensure all tests pass:**
-   ```bash
-   go test ./tests/...
-   ```
-6. **Update documentation** if needed
-7. **Commit your changes:**
-   ```bash
-   git commit -m "Add: description of your changes"
-   ```
-8. **Push to your fork:**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-9. **Open a Pull Request** with a clear description
-
-## Development Setup
-
-### Prerequisites
-
-- Go 1.18 or higher
-- Git
-- A code editor (VS Code, GoLand, etc.)
-
-### Getting Started
-
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd linea
-   ```
-
-2. **Build the project:**
-   ```bash
-   go build -o bin/linea
-   ```
-
-3. **Run tests:**
-   ```bash
-   go test ./tests/...
-   ```
-
-4. **Test your changes:**
-   ```bash
-   ./bin/linea test examples/echo-simple.yml
-   ```
-
-## Coding Guidelines
-
-### Code Style
-
-- Follow Go conventions and style guide
-- Use `gofmt` to format code
-- Keep functions focused and small
-- Write clear, self-documenting code
-- Add comments for complex logic
-
-### Project Structure
+## Project Structure
 
 ```
 linea/
-  main.go              # CLI entry point
-  cmd/                 # Subcommands
-  internal/            # Core logic (not exported)
-  examples/            # Example YAML files
-  tests/               # Test files
-  bin/                 # Compiled executables
+├── main.go              # CLI entry point — dispatches subcommands
+├── cmd/                 # Subcommand implementations
+│   ├── run.go           #   `linea run`
+│   ├── test.go          #   `linea test`
+│   ├── help.go          #   `linea help`
+│   ├── init.go          #   `linea init`
+│   ├── app.go           #   `linea app`
+│   └── lineash.go       #   lineash entry handling
+├── internal/            # Core logic (not exported outside module)
+│   ├── parser.go        #   YAML deserialization
+│   ├── executor.go      #   Command execution + variable substitution
+│   ├── lineash.go       #   Lineash script interpreter
+│   ├── types.go         #   Shared type definitions
+│   └── utils.go         #   Path normalization, OS detection, helpers
+├── lineash/             # Lineash binary entry point
+│   └── main.go
+├── examples/            # Example YAML workflow files
+├── tests/               # Test suite (flat package)
+├── docs/                # Cloudflare Pages documentation site
+├── .github/workflows/   # CI/CD pipeline definitions
+└── bin/                 # Build output (gitignored)
 ```
 
-### Testing
+## Development Workflow
 
-- Write tests for new features
-- Ensure existing tests still pass
-- Test on multiple platforms if possible
-- Test edge cases and error conditions
+### 1. Fork and clone
 
-**Test Structure:**
-- Unit tests in `tests/` directory
-- Test files: `*_test.go`
-- Use descriptive test names
+```bash
+git clone https://github.com/<your-username>/linea.git
+cd linea
+```
 
-**Example:**
+### 2. Create a feature branch
+
+```bash
+git checkout -b feat/my-feature
+```
+
+Use branch prefixes:
+- `feat/` — new features
+- `fix/` — bug fixes
+- `docs/` — documentation
+- `refactor/` — code refactoring
+- `test/` — test additions or changes
+
+### 3. Make changes
+
+Write code following the [coding standards](#coding-standards) below.
+
+### 4. Test
+
+```bash
+go test ./tests/...
+```
+
+### 5. Commit
+
+Follow the [commit conventions](#commit-conventions).
+
+### 6. Push and open a PR
+
+```bash
+git push origin feat/my-feature
+```
+
+Then open a pull request on GitHub. See [PR Process](#pr-process).
+
+## Coding Standards
+
+### Go style
+
+- Follow [Effective Go](https://go.dev/doc/effective_go) and [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- Format code with `gofmt` (or `go fmt ./...`)
+- Run `golangci-lint run` before committing (CI enforces this)
+
+### Naming
+
+| Construct | Convention | Example |
+|---|---|---|
+| Packages | lowercase, single word | `parser`, `executor` |
+| Exported functions | PascalCase | `ParseYAML` |
+| Unexported functions | camelCase | `resolveVars` |
+| Variables | camelCase | `configPath` |
+| Constants | PascalCase | `DefaultTimeout` |
+| Types | PascalCase | `CommandConfig` |
+
+### Error handling
+
+```go
+// Always handle errors explicitly
+config, err := ParseYAML(filePath)
+if err != nil {
+    return fmt.Errorf("parse %s: %w", filePath, err)
+}
+
+// Provide context in error messages
+// Wrap with %w to enable errors.Is / errors.As
+```
+
+### Comments
+
+- Document all exported identifiers with complete sentences
+- Start comments with the identifier name:
+  ```go
+  // ParseYAML reads and parses a YAML file into a CommandConfig.
+  func ParseYAML(filePath string) (*CommandConfig, error) {
+  ```
+
+## Testing
+
+### Expectations
+
+- Maintain >80% code coverage
+- Test both success and failure paths
+- Use table-driven tests for multiple cases
+- Test cross-platform behavior where relevant (path normalization, OS detection)
+
+### Running tests
+
+```bash
+# All tests
+go test ./tests/...
+
+# With coverage
+go test -cover ./tests/...
+
+# Specific test
+go test -run TestSubstituteVariables ./tests/...
+
+# Short mode (skips slow tests)
+go test -short ./tests/...
+```
+
+### Test pattern
+
 ```go
 func TestSubstituteVariables(t *testing.T) {
-    // Test implementation
+    tests := []struct {
+        name     string
+        input    string
+        vars     map[string]string
+        expected string
+    }{
+        {
+            name:     "curly brace syntax",
+            input:    "{name}",
+            vars:     map[string]string{"name": "John"},
+            expected: "John",
+        },
+        {
+            name:     "dollar syntax",
+            input:    "$name",
+            vars:     map[string]string{"name": "John"},
+            expected: "John",
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := SubstituteVariables(tt.input, tt.vars)
+            if got != tt.expected {
+                t.Errorf("got %q, want %q", got, tt.expected)
+            }
+        })
+    }
 }
 ```
 
-### Commit Messages
+## Commit Conventions
 
-Use clear, descriptive commit messages:
+Linea uses [Conventional Commits](https://www.conventionalcommits.org/) for all commit messages. This aligns with how the tool itself structures workflows.
 
-**Format:**
+### Format
+
 ```
-<type>: <description>
+<type>(<scope>): <short description>
 
 [optional body]
+
+[optional footer(s)]
 ```
 
-**Types:**
-- `Add:` - New feature
-- `Fix:` - Bug fix
-- `Update:` - Update existing feature
-- `Refactor:` - Code refactoring
-- `Docs:` - Documentation changes
-- `Test:` - Test additions/changes
+### Types
 
-**Examples:**
+| Type | Usage | Example |
+|---|---|---|
+| `feat` | New feature | `feat(parser): add support for YAML anchors` |
+| `fix` | Bug fix | `fix(executor): handle empty args slice` |
+| `docs` | Documentation | `docs: add CI/CD integration guide` |
+| `refactor` | Code change with no behavior change | `refactor(parser): extract validate function` |
+| `test` | Test additions or changes | `test: add edge cases for path normalization` |
+| `style` | Formatting, linting | `style: gofmt all files` |
+| `chore` | Build, CI, dependencies | `chore: bump yaml.v3 to v3.0.1` |
+
+### Scope
+
+Scope should be the package or area affected — one of: `parser`, `executor`, `lineash`, `cmd`, `test`, `docs`, `ci`.
+
+### Examples
+
 ```
-Add: support for environment variables
-Fix: path normalization on Windows
-Update: improve error messages
-Docs: add examples for nested variables
+feat(parser): add validation for duplicate variables
+fix(executor): normalize paths on Windows for args with spaces
+docs: add troubleshooting section for PATH issues
+test: add table-driven tests for SubstituteVariables
+refactor(executor): extract command builder into separate function
 ```
 
-## Areas for Contribution
+### Breaking changes
 
-### High Priority
+Add `BREAKING CHANGE` in the footer:
 
-- Additional test coverage
-- Documentation improvements
-- Bug fixes
-- Performance optimizations
+```
+feat(api): change variable syntax from %var% to $var
 
-### Feature Ideas
+BREAKING CHANGE: %var% syntax is no longer supported. All existing
+workflows must be updated to use $var or {var} syntax.
+```
 
-- Environment variable support
-- Multi-command execution
-- Command templates
-- Plugin system
-- Interactive mode
-- Logging and history
+## PR Process
 
-### Documentation
+### Before submitting
 
-- More examples
-- Tutorial guides
-- Video tutorials
-- Blog posts
-- Translations
+- [ ] Code follows Go style guidelines (gofmt, golangci-lint)
+- [ ] All tests pass (`go test ./tests/...`)
+- [ ] New features include tests
+- [ ] Documentation is updated (README, USER-GUIDE, or inline)
+- [ ] No breaking changes without clear justification
+- [ ] Error handling is thorough
+- [ ] Cross-platform compatibility is considered (Windows, Linux, macOS)
 
-## Review Process
+### Review criteria
 
-1. **Automated checks** must pass (tests, linting)
-2. **Code review** by maintainers
-3. **Discussion** of any requested changes
-4. **Approval** and merge
+- **Correctness** — Does the change work as intended?
+- **Maintainability** — Is the code easy to understand and modify?
+- **Test coverage** — Are new behaviors tested?
+- **Performance** — No unnecessary allocations or O(n²) patterns
+- **Backward compatibility** — Existing workflows should continue working
 
-## Questions?
+### Merge
 
-- Open an issue for questions
-- Check existing issues and discussions
-- Review documentation files
+- PRs require at least one maintainer approval
+- All CI checks must pass
+- Squash merge is preferred to keep history clean
 
-## Recognition
+## Release Process
 
-Contributors will be:
-- Listed in CONTRIBUTORS.md (if created)
-- Credited in release notes
-- Appreciated by the community!
+1. Ensure all tests pass on `main`
+2. Create a version tag: `git tag v1.2.3`
+3. Push the tag: `git push origin v1.2.3`
+4. CI builds binaries for all platforms and creates a GitHub Release
+5. Release notes are auto-generated from commit history
 
-## License
+Versioning follows [SemVer](https://semver.org/):
+- **MAJOR** — breaking changes
+- **MINOR** — new features (backward compatible)
+- **PATCH** — bug fixes (backward compatible)
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+## Questions
 
-Thank you for contributing to Linea! 🚀
+- **Issues**: [github.com/marcuwynu23/linea/issues](https://github.com/marcuwynu23/linea/issues)
+- **Discussions**: [github.com/marcuwynu23/linea/discussions](https://github.com/marcuwynu23/linea/discussions)
+- **Existing docs**: [README.md](README.md) | [USER-GUIDE.md](USER-GUIDE.md)
 
+---
 
+*Thank you for contributing to Linea!*
